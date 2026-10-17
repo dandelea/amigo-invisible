@@ -4,7 +4,7 @@ Aplicación web de “Amigo Invisible” (Secret Santa) para grupos, pensada par
 
 Proyecto personal y de aprendizaje, gratuito y sin monetización. Solo en español.
 
-> **Estado:** Fase 0 cerrada (plan, estructura del repo y documentación). Todavía no hay funcionalidad: ver [`CONTEXT.md`](CONTEXT.md).
+> **Estado:** Fase 1 cerrada (algoritmo del sorteo). Todavía no hay funcionalidad visible para el usuario: ver [`CONTEXT.md`](CONTEXT.md).
 
 ## Requisitos
 
@@ -104,6 +104,16 @@ Todavía no hay ninguno; llegan en la Fase 2. Se documentarán aquí con su nomb
 - **Backend** (Render Free): NestJS en una sola instancia. API REST bajo `/api`, `/health` fuera del prefijo y un gateway de Socket.IO con una room por sala (adaptador en memoria). Todo el estado vive en la base de datos; los sockets solo notifican.
 - **Base de datos** (Neon): PostgreSQL con Drizzle ORM y migraciones de `drizzle-kit`. Todo cuelga de la sala con `ON DELETE CASCADE`.
 - **Archivos** (Cloudflare R2): las subidas pasan por el backend, que valida el tipo real y el tamaño. Las descargas usan URLs firmadas de corta duración y no pasan por el backend.
+
+## Algoritmo del sorteo
+
+Implementado en `backend/src/draw/draw.ts`, como función pura sin base de datos ni sockets.
+
+- **Resultado:** un único ciclo aleatorio (A→B→C→…→A). Todos regalan y reciben exactamente una vez, nadie se regala a sí mismo y no hay parejas cerradas A↔B.
+- **Regla de pareja (opcional por sala):** los dos miembros de una pareja no pueden ser vecinos en el ciclo, ni A→B ni B→A.
+- **Viabilidad sin buscar:** cada persona tiene como mucho una pareja, así que puede ir junto a otras n−2 como mínimo. Para n ≥ 4 eso es al menos la mitad del grupo y el teorema de Dirac garantiza un ciclo válido. El único caso imposible es 3 participantes con una pareja y la regla activa. `checkDrawFeasibility` lo detecta antes de ejecutar, para avisar al organizador.
+- **Aleatoriedad:** Fisher–Yates con `crypto.randomInt` (nunca `Math.random`), descartando los ciclos que incumplen la regla. Barajar de forma uniforme y descartar da un ciclo uniforme entre los válidos. Cada intento acierta con probabilidad 1/3 o más (el peor caso es n = 4 con 2 parejas); el límite de 10 000 intentos solo evita un bucle infinito.
+- **Errores** (`DrawError.code`): `TOO_FEW_PARTICIPANTS` (menos de 3), `TOO_MANY_PARTICIPANTS` (más de 30), `INVALID_INPUT` (participantes repetidos o parejas mal formadas) y `NO_SOLUTION`.
 
 ## Decisiones técnicas
 

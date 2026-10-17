@@ -4,7 +4,39 @@ Resumen para traspasos entre agentes. La fuente de verdad es [`Prompt_inicial_Am
 
 ## Fase actual
 
-**Fase 0 (plan): cerrada el 18 de octubre de 2026.** Siguiente: **Fase 1, algoritmo del sorteo**.
+**Fase 1 (algoritmo): cerrada el 18 de octubre de 2026.** Siguiente: **Fase 2, base** (modelo de datos, tokens, permisos, crear sala con `MAX_ROOMS`, unirse y lista en tiempo real con reconexión). Antes de codificar, presentar un plan breve y esperar confirmación.
+
+## Fase 1: resumen
+
+### Hecho
+
+- `backend/src/draw/draw.ts`, una función pura con tres partes:
+  - `checkDrawFeasibility(input)`: dice si se puede sortear y, si no, el código del motivo;
+  - `drawCycle(input, randomInt?)`: devuelve el ciclo, donde `cycle[i]` regala a `cycle[i + 1]` y el último al primero;
+  - `cycleToAssignments(cycle)`: convierte el ciclo en un mapa regalador → receptor.
+- 16 tests en `draw.spec.ts`:
+  - un ciclo único válido;
+  - nadie se toca a sí mismo ni a su pareja, para todos los tamaños de 3 a 30 y cualquier número de parejas;
+  - 3 participantes con 1 pareja se detecta como imposible;
+  - 4 participantes con 2 parejas se resuelve;
+  - con la regla desactivada, las parejas no bloquean el sorteo;
+  - el reparto es uniforme (prueba estadística con más de 5 desviaciones típicas de margen);
+  - nunca se usa `Math.random`;
+  - la entrada no se modifica;
+  - se rechazan las entradas inválidas.
+- Prueba de mutación hecha a mano: ignorar la regla de pareja hace fallar 3 tests, y un barajado sesgado hace fallar el test de uniformidad.
+- README con la sección «Algoritmo del sorteo». Swagger sin cambios: aún no hay endpoints nuevos.
+- Tests en verde: backend 23 unitarios y 3 e2e; frontend 1.
+
+### Decisiones
+
+- La viabilidad se decide con una regla cerrada (teorema de Dirac), sin búsqueda. El único caso imposible es n = 3 con una pareja y la regla activa.
+- El algoritmo valida su propia entrada (`INVALID_INPUT`), aunque el backend ya la habrá validado antes, como defensa en profundidad.
+- El generador aleatorio se puede inyectar solo para los tests; por defecto es `crypto.randomInt`.
+
+### Pendiente
+
+- Traducir los `DrawError.code` a respuestas HTTP y a textos de `es.ts` cuando exista el endpoint de sortear (Fase 4).
 
 ## Fase 0: resumen
 
