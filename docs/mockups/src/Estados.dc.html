@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><title>Estados</title>
+<script src="./support.js"></script></head><body><x-dc><helmet>
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+.s{width:390px;height:844px;box-sizing:border-box;padding:20px;background:#FAFAFA;color:#18181B;font-family:'Figtree',system-ui,sans-serif;display:flex;flex-direction:column;gap:14px;overflow:hidden}
+h1,h2,p{margin:0}h1{font-size:28px;line-height:1.15}h2{font-size:17px}
+.m{font-size:13px;color:#52525B}
+.c{background:#fff;border:1px solid #E4E4E7;border-radius:12px;padding:14px;display:flex;flex-direction:column;gap:8px}
+.b{min-height:44px;border-radius:10px;border:1px solid #D4D4D8;background:#fff;font:600 15px 'Figtree',sans-serif;color:#18181B;padding:0 16px}
+.p{background:#BE123C;border-color:#BE123C;color:#fff}
+.r{display:flex;align-items:center;gap:10px;justify-content:space-between}
+.pill{font-size:12px;font-weight:600;padding:2px 8px;border-radius:99px;background:#F4F4F5}
+.w{background:#FEF3C7;border:1px solid #B45309;color:#78350F;border-radius:10px;padding:10px 12px;font-size:13px}
+.row{display:flex;align-items:center;gap:10px;min-height:48px;border-bottom:1px solid #F4F4F5}
+.av{width:32px;height:32px;border-radius:50%;background:#F4F4F5;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;flex:none}
+.g{flex:1;display:flex;flex-direction:column}
+.ct{align-items:center;text-align:center}
+</style></helmet>
+<div class="s">
+<div class="c ct" style="padding:20px"><div style="width:28px;height:28px;border-radius:50%;border:4px solid #E4E4E7;border-top-color:#BE123C"></div><h2>Despertando el servidor</h2><p class="m">Puede tardar hasta un minuto la primera vez.</p></div>
+<div class="c ct" style="padding:20px"><h2>Sala llena</h2><p class="m">Esta sala ya tiene 30 participantes.</p></div>
+<div class="c ct" style="padding:20px"><h2>Sala cerrada</h2><p class="m">El sorteo ya se ha hecho y no admite a nadie más.</p></div>
+<div class="c ct" style="padding:20px"><h2>No encontrado</h2><p class="m">Este enlace no es válido. Pide al organizador uno nuevo.</p></div>
+<div class="c ct" style="padding:20px"><h2>Ahora mismo no se admiten más salas</h2><p class="m">Vuelve a intentarlo más adelante.</p></div>
+</div></x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic { renderVals(){ return {}; } }
+</script></body></html>

@@ -1,0 +1,24 @@
+# Dependencias y compilados
+node_modules/
+dist/
+dist-ssr/
+coverage/
+*.tsbuildinfo
+
+# Entorno: nunca subir valores reales
+.env
+.env.*
+!.env.example
+
+# Logs
+*.log
+
+# Editores y sistema
+.vscode/*
+!.vscode/extensions.json
+.idea/
+.DS_Store
+*.sw?
+
+# Archivo de traspaso de los mockups (ya extraídos en docs/mockups/)
+mockups.zip

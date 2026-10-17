@@ -1,0 +1,86 @@
+{
+  "openapi": "3.0.0",
+  "paths": {
+    "/health": {
+      "get": {
+        "description": "El frontend lo consulta al arrancar para mostrar “Despertando el servidor” mientras Render arranca.",
+        "operationId": "HealthController_check",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthDto"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Comprueba que el servidor está despierto",
+        "tags": [
+          "health"
+        ]
+      }
+    }
+  },
+  "info": {
+    "title": "Amigo Invisible API",
+    "description": "API del MVP de Amigo Invisible.\n\nAutenticación: no hay cuentas. Cada enlace secreto (gestión o personal) lleva un token aleatorio de 32 bytes en el fragmento de la URL (#), que el cliente envía en la cabecera `Authorization: Bearer <token>`. El servidor solo guarda su hash SHA-256.\n\nErrores: todas las respuestas de error usan el esquema `ErrorResponseDto`.\n\nLos eventos de WebSocket no están aquí: se documentan en el README.",
+    "version": "0.1.0",
+    "contact": {}
+  },
+  "tags": [],
+  "servers": [],
+  "components": {
+    "securitySchemes": {
+      "token": {
+        "scheme": "bearer",
+        "bearerFormat": "token opaco (base64url, 32 bytes)",
+        "type": "http",
+        "description": "Token del enlace de gestión (organizador) o del enlace personal (participante)."
+      }
+    },
+    "schemas": {
+      "HealthDto": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "ok"
+            ],
+            "example": "ok"
+          }
+        },
+        "required": [
+          "status"
+        ]
+      },
+      "ErrorResponseDto": {
+        "type": "object",
+        "properties": {
+          "statusCode": {
+            "type": "number",
+            "example": 404
+          },
+          "error": {
+            "type": "string",
+            "example": "NOT_FOUND",
+            "description": "Código estable para que el cliente elija el texto a mostrar."
+          },
+          "message": {
+            "type": "string",
+            "example": "No encontrado"
+          }
+        },
+        "required": [
+          "statusCode",
+          "error",
+          "message"
+        ]
+      }
+    }
+  }
+}

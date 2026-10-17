@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><title>Organizador (tablet)</title>
+<script src="./support.js"></script></head><body><x-dc><helmet>
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+.pg{box-sizing:border-box;min-height:100%;background:#FAFAFA;color:#18181B;font-family:'Figtree',system-ui,sans-serif}
+h1,h2,p{margin:0}h2{font-size:17px}
+.m{font-size:13px;color:#52525B}
+.c{background:#fff;border:1px solid #E4E4E7;border-radius:12px;padding:16px;display:flex;flex-direction:column;gap:10px}
+.b{min-height:44px;border-radius:10px;border:1px solid #D4D4D8;background:#fff;font:600 15px 'Figtree',sans-serif;color:#18181B;padding:0 16px}
+.p{background:#BE123C;border-color:#BE123C;color:#fff}
+.r{display:flex;align-items:center;gap:10px;justify-content:space-between}
+.pill{font-size:12px;font-weight:600;padding:2px 8px;border-radius:99px;background:#F4F4F5}
+.w{background:#FEF3C7;border:1px solid #B45309;color:#78350F;border-radius:10px;padding:10px 12px;font-size:13px}
+.row{display:flex;align-items:center;gap:10px;min-height:48px;border-bottom:1px solid #F4F4F5}
+.av{width:32px;height:32px;border-radius:50%;background:#F4F4F5;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;flex:none}
+.g{flex:1;display:flex;flex-direction:column}
+</style></helmet>
+<div class="pg" style="padding:28px 32px"><div style="max-width:760px;margin:0 auto;display:flex;flex-direction:column;gap:24px">
+<div class="r"><b style="font-size:20px">Amigo Invisible</b></div>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;align-items:start"><div class="c" style="padding:6px 20px"><div class="r" style="padding:10px 0 4px"><h2>Participantes</h2><span class="m">Regla de pareja: activa</span></div><div role="group" aria-label="Pareja: Ana y Luis" style="position:relative;background:#FFF1F2;border:1px solid #FDA4AF;border-radius:12px;padding:0 10px;margin:4px 0"><div style="position:absolute;left:25px;top:28px;height:56px;width:3px;background:#BE123C"></div><div style="position:absolute;left:15px;top:45px;width:22px;height:22px;box-sizing:border-box;border-radius:50%;background:#fff;border:2px solid #BE123C;display:flex;align-items:center;justify-content:center;z-index:2"><svg width="12" height="12" viewBox="0 0 24 24" fill="#BE123C" role="img" aria-label="pareja"><path d="M12 21s-8-5.2-8-11a4.5 4.5 0 0 1 8-2.8A4.5 4.5 0 0 1 20 10c0 5.8-8 11-8 11z"/></svg></div><div class="row" style="min-height:56px;border:0"><span class="av" style="background:#fff;border:2px solid #BE123C;box-sizing:border-box;z-index:1">A</span><div class="g"><b>Ana</b></div><button class="b" aria-label="Acciones de Ana" title="Acciones" style="width:44px;padding:0;display:flex;align-items:center;justify-content:center"><svg width="20" height="20" viewBox="0 0 24 24" fill="#18181B" aria-hidden="true"><circle cx="12" cy="5" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="19" r="2"/></svg></button></div><div class="row" style="min-height:56px;border:0"><span class="av" style="background:#fff;border:2px solid #BE123C;box-sizing:border-box;z-index:1">L</span><div class="g"><b>Luis</b></div><button class="b" aria-label="Acciones de Luis" title="Acciones" style="width:44px;padding:0;display:flex;align-items:center;justify-content:center"><svg width="20" height="20" viewBox="0 0 24 24" fill="#18181B" aria-hidden="true"><circle cx="12" cy="5" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="19" r="2"/></svg></button></div><button class="b" style="margin:0 0 10px;width:100%;color:#9F1239;border-color:#FDA4AF">Deshacer pareja</button></div><div class="row" style="border:0"><span class="av">M</span><div class="g"><b>Marta</b></div><button class="b" aria-label="Acciones de Marta" title="Acciones" style="width:44px;padding:0;display:flex;align-items:center;justify-content:center"><svg width="20" height="20" viewBox="0 0 24 24" fill="#18181B" aria-hidden="true"><circle cx="12" cy="5" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="19" r="2"/></svg></button></div><button class="b" style="margin:6px 0 12px">Marcar pareja</button></div><div style="display:flex;flex-direction:column;gap:16px"><div class="c"><div class="r"><h1 style="font-size:26px">Tu sala</h1><span class="pill">Abierta · 3/30</span></div><div class="r"><div><b>Cena de Navidad de la oficina</b><p class="m">Entrega: 20 dic 2026 · hasta 15 €</p></div><button class="b">Editar</button></div></div><div class="w"><b>No hay solución.</b> Con 3 participantes y una pareja el sorteo es imposible. Quita la pareja, desactiva la regla o espera a más gente.</div><button class="b" style="min-height:52px;background:#E4E4E7;color:#52525B" disabled>Sortear</button></div></div>
+</div></div></x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":820,"height":860}}'>
+class Component extends DCLogic { renderVals(){ return {}; } }
+</script></body></html>

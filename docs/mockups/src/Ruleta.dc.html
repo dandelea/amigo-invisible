@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><title>Ruleta</title>
+<script src="./support.js"></script></head><body><x-dc><helmet>
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+.s{width:390px;height:844px;box-sizing:border-box;padding:20px;background:#FAFAFA;color:#18181B;font-family:'Figtree',system-ui,sans-serif;display:flex;flex-direction:column;gap:14px;overflow:hidden}
+h1,h2,p{margin:0}h1{font-size:28px;line-height:1.15}h2{font-size:17px}
+.m{font-size:13px;color:#52525B}
+.c{background:#fff;border:1px solid #E4E4E7;border-radius:12px;padding:14px;display:flex;flex-direction:column;gap:8px}
+.b{min-height:44px;border-radius:10px;border:1px solid #D4D4D8;background:#fff;font:600 15px 'Figtree',sans-serif;color:#18181B;padding:0 16px}
+.p{background:#BE123C;border-color:#BE123C;color:#fff}
+.pill{font-size:12px;font-weight:600;padding:2px 8px;border-radius:99px;background:#F4F4F5;align-self:flex-start}
+.n{height:54px;display:flex;align-items:center;justify-content:center;font-weight:600;color:#18181B}
+</style></helmet>
+<div class="s">
+<span class="pill">Sorteo en directo</span>
+<div><h1>Sorteando…</h1><p class="m" style="margin-top:6px">Marta, ya casi tienes a tu amigo invisible.</p></div>
+<div class="c" style="padding:0;position:relative;overflow:hidden;height:378px" aria-hidden="true">
+<div class="n" style="opacity:.2;font-size:18px">Sofía</div><div class="n" style="opacity:.4;font-size:20px">Luis</div><div class="n" style="opacity:.7;font-size:24px">Pablo</div>
+<div class="n" style="font-size:34px;font-weight:700;color:#BE123C;background:#FFF1F2;border-top:2px solid #BE123C;border-bottom:2px solid #BE123C">Carla</div>
+<div class="n" style="opacity:.7;font-size:24px">Ana</div><div class="n" style="opacity:.4;font-size:20px">Sofía</div><div class="n" style="opacity:.2;font-size:18px">Luis</div>
+<svg width="16" height="18" viewBox="0 0 16 18" fill="#BE123C" style="position:absolute;left:8px;top:180px"><path d="M2 1l12 8-12 8z"/></svg>
+<svg width="16" height="18" viewBox="0 0 16 18" fill="#BE123C" style="position:absolute;right:8px;top:180px"><path d="M14 1L2 9l12 8z"/></svg></div>
+<p class="m" aria-live="polite" style="text-align:center">Tu resultado aparecerá en unos segundos.</p>
+<div style="height:6px;border-radius:99px;background:#E4E4E7"><div style="width:70%;height:6px;border-radius:99px;background:#BE123C"></div></div>
+<button class="b" style="margin-top:auto">Saltar animación</button>
+</div></x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic { renderVals(){ return {}; } }
+</script></body></html>

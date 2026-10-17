@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><title>Editar mi lista (enlace)</title>
+<script src="./support.js"></script></head><body><x-dc><helmet>
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+.s{width:390px;height:844px;box-sizing:border-box;padding:20px;background:#FAFAFA;color:#18181B;font-family:'Figtree',system-ui,sans-serif;display:flex;flex-direction:column;gap:14px;overflow:hidden}
+h1,h2,p{margin:0}h2{font-size:17px}
+.m{font-size:13px;color:#52525B}
+.c{background:#fff;border:1px solid #E4E4E7;border-radius:12px;padding:14px;display:flex;flex-direction:column;gap:8px}
+.b{min-height:44px;border-radius:10px;border:1px solid #D4D4D8;background:#fff;font:600 15px 'Figtree',sans-serif;color:#18181B;padding:0 16px}
+.p{background:#BE123C;border-color:#BE123C;color:#fff}
+.r{display:flex;align-items:center;gap:10px;justify-content:space-between}
+.pill{font-size:12px;font-weight:600;padding:2px 8px;border-radius:99px;background:#F4F4F5}
+label{font-weight:600;font-size:14px}
+</style></helmet>
+<div class="s"><div style="margin:-20px;width:390px;height:844px;position:relative;overflow:hidden">
+<div style="padding:20px"><h1 style="font-size:24px;margin:0">Cena de Navidad de la oficina</h1><p class="m" style="margin-top:6px">Entrega: 20 dic 2026 · hasta 15 €</p></div>
+<div style="position:absolute;left:0;top:0;right:0;bottom:0;background:rgba(24,24,27,.55)"></div>
+<div role="dialog" aria-modal="true" aria-label="Mi lista de deseos" style="position:absolute;left:0;right:0;bottom:0;background:#fff;border-radius:20px 20px 0 0;padding:20px;display:flex;flex-direction:column;gap:14px">
+<div class="r"><h2 style="font-size:20px">Mi lista de deseos</h2><button class="b">Cerrar</button></div>
+<div style="display:flex;border:1px solid #D4D4D8;border-radius:10px;overflow:hidden"><button class="b" aria-pressed="true" style="flex:1;border:0;border-radius:0;background:#BE123C;color:#fff">Enlace</button><button class="b" aria-pressed="false" style="flex:1;border:0;border-radius:0;background:#fff">Archivo</button></div>
+<div style="display:flex;flex-direction:column;gap:6px"><label for="l">Enlace (https)</label><input id="l" type="text" value="[enlace de deseos]" style="min-height:48px;box-sizing:border-box;width:100%;border:1px solid #D4D4D8;border-radius:10px;padding:0 12px;font:16px Figtree,sans-serif;background:#fff;color:#18181B"><span class="m">Debe empezar por https://</span></div>
+<div class="c" style="background:#FAFAFA"><p class="m">Solo tienes un elemento: un enlace o un archivo. Al guardar, reemplaza el actual.</p></div>
+<button class="b p" style="min-height:52px">Guardar</button><button class="b" style="color:#9F1239;border-color:#FDA4AF">Quitar mi lista</button>
+</div></div></div></x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic { renderVals(){ return {}; } }
+</script></body></html>
