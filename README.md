@@ -4,32 +4,39 @@ Aplicación web de “Amigo Invisible” (Secret Santa) para grupos, pensada par
 
 Proyecto personal y de aprendizaje, gratuito y sin monetización. Solo en español.
 
-> **Estado:** Fase 1 cerrada (algoritmo del sorteo). Todavía no hay funcionalidad visible para el usuario: ver [`CONTEXT.md`](CONTEXT.md).
+> **Estado:** Fase 2a cerrada: el backend permite crear salas, unirse y ver la lista en tiempo real. El frontend de estas pantallas es la Fase 2b. Ver [`CONTEXT.md`](CONTEXT.md).
 
 ## Requisitos
 
 - Node.js 24 o superior y npm 11.
-- Para las fases con base de datos y archivos: una base de datos PostgreSQL (Neon) y un bucket de Cloudflare R2.
+- Docker, para el PostgreSQL de desarrollo (`docker-compose.yml`) y para los tests de integración (Testcontainers).
+- En producción: una base de datos PostgreSQL en Neon y, desde la Fase 3, un bucket de Cloudflare R2.
 
 ## Estructura del repositorio
 
 ```
 backend/        API NestJS + Socket.IO + Drizzle (PostgreSQL)
+  drizzle/      Migraciones SQL generadas por drizzle-kit
 frontend/       SPA React + Vite + Tailwind + shadcn/ui
 docs/
   mockups/      Mockups de diseño (ver docs/mockups/MOCKUPS.md)
   openapi.json  Esquema OpenAPI exportado desde el backend
   componentes.md  Componentes reutilizables del frontend
 CONTEXT.md      Estado del proyecto para traspasos
+docker-compose.yml  PostgreSQL de desarrollo (puerto 54329)
 Prompt_inicial_Amigo_Invisible.md   Fuente de verdad del proyecto
 ```
 
 ## Instalación
 
 ```bash
+docker compose up -d                  # PostgreSQL de desarrollo en el puerto 54329
 cd backend && npm install && cp .env.example .env
+npm run db:migrate                    # aplica las migraciones
 cd ../frontend && npm install && cp .env.example .env
 ```
+
+El PostgreSQL de desarrollo usa el puerto 54329 para no chocar con un PostgreSQL instalado en el sistema.
 
 ## Variables de entorno
 
@@ -41,16 +48,19 @@ Nunca subas archivos `.env` al repositorio; solo los `.env.example`.
 |---|---|---|---|
 | `NODE_ENV` | No | `development` | `development`, `test` o `production`. |
 | `PORT` | No | `3000` | Puerto HTTP (Render lo define solo). |
+| `DATABASE_URL` | **Sí** | — | Cadena de conexión de PostgreSQL. En local, la del `.env.example`; en Neon, con `sslmode=require`. |
 | `MAX_ROOMS` | No | `10` | Tope global de salas existentes. Al alcanzarlo no se pueden crear más. |
 | `CORS_ORIGIN` | No | `http://localhost:5173` | Origen del frontend permitido. |
 | `TRUST_PROXY` | No | `1` | Saltos de proxy de confianza para obtener la IP real (rate limiting). |
-| `DATABASE_URL` | Desde la Fase 2 | — | Cadena de conexión de Neon, con `sslmode=require`. |
+| `RATE_LIMIT_PER_MINUTE` | No | `300` | Peticiones por minuto y por IP en toda la API. Generoso porque un grupo puede compartir wifi. |
+| `RATE_LIMIT_CREATE_ROOM_PER_HOUR` | No | `10` | Salas que se pueden crear por hora y por IP. |
+| `RATE_LIMIT_JOIN_PER_MINUTE` | No | `30` | Entradas en salas por minuto y por IP. |
 | `R2_ACCOUNT_ID` | Desde la Fase 3 | — | Cuenta de Cloudflare. |
 | `R2_ACCESS_KEY_ID` | Desde la Fase 3 | — | Clave de acceso de R2. |
 | `R2_SECRET_ACCESS_KEY` | Desde la Fase 3 | — | Secreto de R2. |
 | `R2_BUCKET` | Desde la Fase 3 | — | Nombre del bucket. |
 
-Si una variable es inválida, el backend no arranca y muestra solo su nombre, nunca su valor.
+Si una variable es inválida, el backend no arranca y muestra solo su nombre, nunca su valor. En local, el backend carga `backend/.env` con `process.loadEnvFile`; en producción las variables las define el hosting.
 
 ### Frontend (`frontend/.env`)
 
@@ -73,7 +83,7 @@ cd frontend && npm run dev
 ```bash
 cd backend
 npm test            # unitarios
-npm run test:e2e    # integración / e2e
+npm run test:e2e    # integración (necesita Docker: arranca un PostgreSQL 17 con Testcontainers)
 npm run lint
 
 cd frontend
@@ -90,13 +100,39 @@ npm run lint
 
 ### Endpoints actuales
 
-| Método | Ruta | Descripción |
+| Método | Ruta | Token | Descripción |
+|---|---|---|---|
+| GET | `/health` | — | Comprueba que el servidor está despierto. |
+| GET | `/api/rooms/availability` | — | `{ canCreateRoom }`: false al alcanzar `MAX_ROOMS`. |
+| POST | `/api/rooms` | — | Crea una sala. Devuelve `inviteCode` y `manageToken` (solo esta vez). 503 `MAX_ROOMS_REACHED`. |
+| GET | `/api/invitations/:code` | — | Resumen público para unirse: datos, nombres y `cannotJoinReason`. |
+| POST | `/api/invitations/:code/participants` | — | Se une con un nombre. Devuelve `participantToken` (solo esta vez). 409 `ROOM_FULL`, `ROOM_CLOSED` o `NAME_TAKEN`. |
+| GET | `/api/me` | Personal | Estado de la sala para el participante. |
+| GET | `/api/manage` | Gestión | Estado de la sala para el organizador. |
+
+Un token ausente, mal formado o inválido devuelve siempre el mismo 404 `NOT_FOUND`, para no revelar si un enlace existió.
+
+### Enlaces del frontend
+
+| Enlace | Forma | Quién |
 |---|---|---|
-| GET | `/health` | Comprueba que el servidor está despierto. |
+| Invitación | `/s/<inviteCode>` | Para compartir con el grupo |
+| Gestión | `/o#<manageToken>` | Solo el organizador |
+| Personal | `/p#<participantToken>` | Solo ese participante |
+
+Los tokens van en el fragmento (`#`): el navegador no los envía al servidor al cargar la página.
 
 ## Eventos de WebSocket
 
-Todavía no hay ninguno; llegan en la Fase 2. Se documentarán aquí con su nombre, emisor, receptor, payload y qué recibe cada rol (organizador o participante). La asignación del sorteo solo se emite al socket del propio participante.
+Socket.IO en el namespace `/rooms`. El cliente se conecta con `auth: { role: 'organizer' | 'participant', token }`. El token va en el handshake, nunca en la URL. Si el token no es válido, la conexión se rechaza con `connect_error` (`NOT_FOUND`) y el cliente no reintenta solo.
+
+**Los eventos solo avisan y no llevan datos.** Al recibir un aviso, o al conectar y reconectar, el cliente vuelve a pedir el estado por HTTP (`/api/me` o `/api/manage`), que ya filtra lo que puede ver cada rol. Así ningún evento puede filtrar datos ajenos y la reconexión siempre recarga el estado actual.
+
+| Evento | Emisor | Receptor | Payload | Cuándo |
+|---|---|---|---|---|
+| `room:changed` | Servidor | Organizador y participantes de la sala | Ninguno | Alguien entra en la sala (Fase 2). En las fases siguientes, también parejas, salidas, deseos y sorteo. |
+
+Cada socket entra en la room `room:<id>` de su sala; los de participantes, también en `participant:<id>`, reservada para avisos individuales (Fase 4). La asignación del sorteo nunca viaja por el socket: el participante la pide por HTTP con su token.
 
 ## Arquitectura
 
@@ -119,6 +155,11 @@ Implementado en `backend/src/draw/draw.ts`, como función pura sin base de datos
 
 | Decisión | Motivo |
 |---|---|
+| Bloqueos en la base de datos | Unirse bloquea la fila de la sala (`SELECT … FOR UPDATE`), así que las entradas simultáneas se procesan de una en una y nunca superan 30 ni entran en una sala cerrada. Crear sala usa un bloqueo consultivo (`pg_advisory_xact_lock`) para que las creaciones simultáneas no superen `MAX_ROOMS`. La restricción única `(room_id, name_key)` respalda la comprobación de nombres repetidos. |
+| Sockets que solo avisan | Todo el estado viaja por HTTP con permisos; el socket solo dice «algo ha cambiado». Es más simple y no puede filtrar datos. |
+| Configuración propia (`EnvModule`) | Valida `process.env` al crear la app y no al importar el módulo, así cada test puede arrancar con su propia configuración. Sustituye a `@nestjs/config`. |
+| Testcontainers | Los tests de integración usan un PostgreSQL 17 real, necesario para probar bloqueos y concurrencia. |
+| Nombres sin tildes ni mayúsculas | `name_key` quita tildes y mayúsculas para detectar repetidos, pero conserva la ñ: «Peña» y «Pena» son distintos. |
 | Drizzle como ORM | Tipado fuerte, API cercana a SQL y bloqueo de filas nativo (`.for('update')`) para el sorteo, `MAX_ROOMS` y el tope de 30. Ligero para arrancar en frío. |
 | Render Free | WebSockets admitidos y sin tarjeta. Se duerme a los 15 min; el frontend muestra “Despertando el servidor”. |
 | Neon | Se suspende a los 5 min y despierta en milisegundos, sin pausar el proyecto (Supabase pausa todo tras una semana). |

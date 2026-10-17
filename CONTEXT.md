@@ -4,7 +4,50 @@ Resumen para traspasos entre agentes. La fuente de verdad es [`Prompt_inicial_Am
 
 ## Fase actual
 
-**Fase 1 (algoritmo): cerrada el 18 de octubre de 2026.** Siguiente: **Fase 2, base** (modelo de datos, tokens, permisos, crear sala con `MAX_ROOMS`, unirse y lista en tiempo real con reconexión). Antes de codificar, presentar un plan breve y esperar confirmación.
+**Fase 2a (backend de la base): terminada el 18 de octubre de 2026, pendiente de revisión del usuario.** Siguiente: **Fase 2b, frontend** de estas pantallas, con el plan que ya está confirmado (ver abajo).
+
+## Fase 2: plan confirmado
+
+- **2a, backend** (hecha): modelo de datos, tokens, permisos, crear sala con `MAX_ROOMS`, unirse, vistas de participante y organizador, Socket.IO que solo avisa, límite de peticiones y tests con Testcontainers.
+- **2b, frontend** (pendiente):
+  - React Router con Inicio, Crear, Sala creada, Unirse (con el error de nombre repetido), Participante, Organizador y estados (llena, cerrada, no encontrado, sin salas);
+  - componentes `Button`, `Card`, `Pill`, `Avatar`, `FormField`, `Alert`, `PageLayout`, `StepCard`, `StatusScreen`, `RoomHeader`, `ParticipantRow`, `ParticipantList` y `CopyLinkBox`;
+  - cliente de API con `Authorization` y `socket.io-client` con reconexión que recarga el estado;
+  - tests con Testing Library.
+- **Para la Fase 3:** editar los datos de la sala y salir de la sala, junto con parejas, expulsión y deseos. La pantalla «Despertando el servidor» queda para la Fase 5.
+
+## Fase 2a: resumen
+
+### Hecho
+
+- **Esquema** (`src/db/schema.ts`, migración `drizzle/0000_init.sql`): tablas `rooms` y `participants`, con `ON DELETE CASCADE` y la restricción única `(room_id, name_key)`.
+- **Tokens** (`src/common/tokens.ts`): 32 bytes en base64url; en la base de datos solo el SHA-256 en hexadecimal; búsqueda por hash más `timingSafeEqual`. El código de invitación son 16 caracteres aleatorios.
+- **Permisos**: `AuthService` más `OrganizerGuard` y `ParticipantGuard` (`src/auth/`). Siempre 404 genérico.
+- **Endpoints** en `src/rooms/rooms.controller.ts`: disponibilidad, crear sala, invitación, unirse, `/api/me` y `/api/manage`. Tabla en el README.
+- **Tiempo real** (`src/realtime/`): namespace `/rooms`; se autentica en un middleware con `auth: { role, token }` y solo emite `room:changed`, sin datos.
+- **Validación**: `class-validator` con mensajes en español y código `VALIDATION_ERROR`. Nombres normalizados en `src/common/names.ts`.
+- **Límite de peticiones** (`src/common/rate-limit.ts`): uno general, otro para crear sala y otro para unirse, configurables por variable de entorno. No se aplica a los sockets.
+- **Configuración**: `EnvModule` propio en lugar de `@nestjs/config`. `main.ts` y `drizzle.config.ts` cargan `.env` con `process.loadEnvFile`.
+- **Desarrollo**: `docker-compose.yml` con PostgreSQL en el puerto 54329.
+- **Tests**: 50 unitarios y 61 de integración.
+  - Los de integración, con un PostgreSQL 17 real: concurrencia (31 entradas a la vez, la sala a 29, el mismo nombre 10 veces, entradas mientras la sala se cierra, 10 creaciones con `MAX_ROOMS=3`), permisos, ausencia de secretos en las respuestas, cascada al borrar, sockets y límites por IP.
+  - Prueba de mutación: sin `FOR UPDATE`, la sala pasa de 30; sin el bloqueo consultivo, se supera `MAX_ROOMS`. En los dos casos fallan los tests.
+- **Prueba manual** con el PostgreSQL de docker compose: migraciones, crear sala, unirse, nombre repetido y vista del organizador. El log no contenía tokens.
+- Swagger, `docs/openapi.json` y README actualizados.
+
+### Decisiones
+
+- `MAX_ROOMS_REACHED` responde 503; `ROOM_FULL`, `ROOM_CLOSED` y `NAME_TAKEN` responden 409.
+- La invitación de una sala llena o cerrada no devuelve nombres (`participantNames: []`).
+- El presupuesto se recibe y se devuelve en euros y se guarda en céntimos.
+- La fecha de entrega va de hoy (hora de España) a 2 años vista.
+- Al participante se le muestran los ids de los demás (los necesitará para las parejas), nunca hashes ni datos internos.
+- El PostgreSQL de desarrollo usa el puerto 54329 porque en la máquina del usuario ya hay un PostgreSQL en el 5432.
+
+### Pendiente
+
+- Fase 2b (frontend).
+- Al expulsar o salir (Fase 3) habrá que desconectar los sockets del participante (`participant:<id>`).
 
 ## Fase 1: resumen
 

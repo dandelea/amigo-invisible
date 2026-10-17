@@ -1,23 +1,53 @@
-import { INestApplication, RequestMethod } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
+import {
+  BadRequestException,
+  INestApplication,
+  RequestMethod,
+  ValidationPipe,
+  type ValidationError,
+} from '@nestjs/common';
 import type { NestExpressApplication } from '@nestjs/platform-express';
 import { DocumentBuilder, OpenAPIObject, SwaggerModule } from '@nestjs/swagger';
 import { ErrorResponseDto } from './common/error-response.dto.js';
 import { HttpExceptionFilter } from './common/http-exception.filter.js';
 import type { Env } from './config/env.js';
+import { ENV } from './config/env.module.js';
+import { CorsIoAdapter } from './realtime/cors-io.adapter.js';
 
 export const TOKEN_AUTH = 'token';
+
+// Errores de validación: un mensaje en español por campo, con código
+// VALIDATION_ERROR.
+function validationErrors(errors: ValidationError[]): BadRequestException {
+  const messages = errors.flatMap((e) =>
+    e.constraints
+      ? Object.values(e.constraints)
+      : [`El campo ${e.property} no es válido`],
+  );
+  return new BadRequestException({
+    error: 'VALIDATION_ERROR',
+    message: messages,
+  });
+}
 
 // Configuración común a main.ts, los tests e2e y la exportación de OpenAPI,
 // para que los tres vean exactamente la misma aplicación.
 export function configureApp(app: NestExpressApplication): void {
-  const config = app.get(ConfigService<Env, true>);
-  app.set('trust proxy', config.get('TRUST_PROXY', { infer: true }));
-  app.enableCors({ origin: config.get('CORS_ORIGIN', { infer: true }) });
+  const env = app.get<Env>(ENV);
+  app.set('trust proxy', env.TRUST_PROXY);
+  app.enableCors({ origin: env.CORS_ORIGIN });
   app.setGlobalPrefix('api', {
     exclude: [{ path: 'health', method: RequestMethod.GET }],
   });
   app.useGlobalFilters(new HttpExceptionFilter());
+  app.useGlobalPipes(
+    new ValidationPipe({
+      whitelist: true,
+      forbidNonWhitelisted: true,
+      transform: true,
+      exceptionFactory: validationErrors,
+    }),
+  );
+  app.useWebSocketAdapter(new CorsIoAdapter(app, env.CORS_ORIGIN));
 }
 
 export function buildOpenApi(app: INestApplication): OpenAPIObject {

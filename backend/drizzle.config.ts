@@ -1,6 +1,12 @@
 import { defineConfig } from 'drizzle-kit';
 
-// Migraciones con drizzle-kit. El esquema se define en la Fase 2.
+try {
+  process.loadEnvFile('.env');
+} catch {
+  // Sin archivo .env: se usa DATABASE_URL del entorno.
+}
+
+// Migraciones con drizzle-kit a partir de src/db/schema.ts.
 // Generar: npm run db:generate · Aplicar: npm run db:migrate
 export default defineConfig({
   dialect: 'postgresql',

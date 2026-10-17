@@ -1,0 +1,17 @@
+# PostgreSQL solo para desarrollo local. En producción se usa Neon.
+# Arrancar: docker compose up -d (puerto 54329, para no chocar con un
+# PostgreSQL instalado en el sistema)
+services:
+  db:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_USER: amigo
+      POSTGRES_PASSWORD: amigo
+      POSTGRES_DB: amigo
+    ports:
+      - "127.0.0.1:54329:5432"
+    volumes:
+      - db-data:/var/lib/postgresql/data
+
+volumes:
+  db-data:

@@ -23,6 +23,333 @@
           "health"
         ]
       }
+    },
+    "/api/rooms/availability": {
+      "get": {
+        "description": "El inicio muestra “Ahora mismo no se admiten más salas” si es false.",
+        "operationId": "RoomsController_availability",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AvailabilityDto"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "TOO_MANY_REQUESTS",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Indica si se pueden crear salas",
+        "tags": [
+          "salas"
+        ]
+      }
+    },
+    "/api/rooms": {
+      "post": {
+        "description": "Devuelve el código de invitación y el token de gestión, que no se vuelve a mostrar.",
+        "operationId": "RoomsController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateRoomDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateRoomResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "VALIDATION_ERROR",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "TOO_MANY_REQUESTS",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "MAX_ROOMS_REACHED",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Crea una sala",
+        "tags": [
+          "salas"
+        ]
+      }
+    },
+    "/api/invitations/{code}": {
+      "get": {
+        "operationId": "RoomsController_invitation",
+        "parameters": [
+          {
+            "name": "code",
+            "required": true,
+            "in": "path",
+            "description": "Código de invitación",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InvitationDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "NOT_FOUND",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "TOO_MANY_REQUESTS",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Resumen público de una sala para el enlace de invitación",
+        "tags": [
+          "salas"
+        ]
+      }
+    },
+    "/api/invitations/{code}/participants": {
+      "post": {
+        "description": "Devuelve el token del enlace personal, que no se vuelve a mostrar.",
+        "operationId": "RoomsController_join",
+        "parameters": [
+          {
+            "name": "code",
+            "required": true,
+            "in": "path",
+            "description": "Código de invitación",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/JoinRoomDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JoinRoomResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "VALIDATION_ERROR",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "NOT_FOUND",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "ROOM_FULL, ROOM_CLOSED o NAME_TAKEN",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "TOO_MANY_REQUESTS",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Se une a una sala con un nombre",
+        "tags": [
+          "salas"
+        ]
+      }
+    },
+    "/api/me": {
+      "get": {
+        "description": "Requiere el token del enlace personal.",
+        "operationId": "RoomsController_me",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ParticipantViewDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "NOT_FOUND (token inválido)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "TOO_MANY_REQUESTS",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "token": []
+          }
+        ],
+        "summary": "Estado de la sala para el participante",
+        "tags": [
+          "salas"
+        ]
+      }
+    },
+    "/api/manage": {
+      "get": {
+        "description": "Requiere el token del enlace de gestión.",
+        "operationId": "RoomsController_manage",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrganizerViewDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "NOT_FOUND (token inválido)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "TOO_MANY_REQUESTS",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "token": []
+          }
+        ],
+        "summary": "Estado de la sala para el organizador",
+        "tags": [
+          "salas"
+        ]
+      }
     }
   },
   "info": {
@@ -79,6 +406,254 @@
           "statusCode",
           "error",
           "message"
+        ]
+      },
+      "AvailabilityDto": {
+        "type": "object",
+        "properties": {
+          "canCreateRoom": {
+            "type": "boolean",
+            "description": "false cuando se ha alcanzado MAX_ROOMS."
+          }
+        },
+        "required": [
+          "canCreateRoom"
+        ]
+      },
+      "CreateRoomDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 60,
+            "example": "Cena de Navidad de la oficina"
+          },
+          "giftDate": {
+            "type": "string",
+            "format": "date",
+            "example": "2026-12-20",
+            "description": "Día de entrega de los regalos. De hoy a 2 años vista."
+          },
+          "budget": {
+            "type": "number",
+            "minimum": 1,
+            "maximum": 1000,
+            "example": 15,
+            "description": "Presupuesto sugerido en euros, con hasta 2 decimales."
+          }
+        },
+        "required": [
+          "name"
+        ]
+      },
+      "RoomDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "Cena de Navidad de la oficina"
+          },
+          "giftDate": {
+            "type": "string",
+            "format": "date",
+            "nullable": true,
+            "example": "2026-12-20"
+          },
+          "budget": {
+            "type": "number",
+            "nullable": true,
+            "example": 15,
+            "description": "Euros"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "open",
+              "drawn"
+            ],
+            "example": "open"
+          },
+          "pairRuleEnabled": {
+            "type": "boolean",
+            "example": true
+          }
+        },
+        "required": [
+          "name",
+          "giftDate",
+          "budget",
+          "status",
+          "pairRuleEnabled"
+        ]
+      },
+      "CreateRoomResponseDto": {
+        "type": "object",
+        "properties": {
+          "room": {
+            "$ref": "#/components/schemas/RoomDto"
+          },
+          "inviteCode": {
+            "type": "string",
+            "example": "AbCdEfGhIjKlMnOp",
+            "description": "Código del enlace de invitación: /s/<inviteCode>."
+          },
+          "manageToken": {
+            "type": "string",
+            "description": "Token del enlace de gestión: /o#<manageToken>. Se devuelve solo esta vez."
+          }
+        },
+        "required": [
+          "room",
+          "inviteCode",
+          "manageToken"
+        ]
+      },
+      "InvitationDto": {
+        "type": "object",
+        "properties": {
+          "room": {
+            "$ref": "#/components/schemas/RoomDto"
+          },
+          "participantCount": {
+            "type": "number",
+            "example": 5
+          },
+          "maxParticipants": {
+            "type": "number",
+            "example": 30
+          },
+          "participantNames": {
+            "example": [
+              "Ana",
+              "Luis",
+              "Marta"
+            ],
+            "description": "Nombres de quienes ya están dentro. Vacío si no se puede entrar.",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "cannotJoinReason": {
+            "type": "string",
+            "enum": [
+              "ROOM_FULL",
+              "ROOM_CLOSED"
+            ],
+            "nullable": true,
+            "description": "Motivo por el que no se puede entrar, o null si se puede."
+          }
+        },
+        "required": [
+          "room",
+          "participantCount",
+          "maxParticipants",
+          "participantNames",
+          "cannotJoinReason"
+        ]
+      },
+      "JoinRoomDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 30,
+            "example": "Sofía",
+            "description": "Letras, números, espacios y ' - . No puede repetirse en la sala (sin distinguir mayúsculas ni tildes)."
+          }
+        },
+        "required": [
+          "name"
+        ]
+      },
+      "ParticipantDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string",
+            "example": "Ana"
+          }
+        },
+        "required": [
+          "id",
+          "name"
+        ]
+      },
+      "JoinRoomResponseDto": {
+        "type": "object",
+        "properties": {
+          "participant": {
+            "$ref": "#/components/schemas/ParticipantDto"
+          },
+          "participantToken": {
+            "type": "string",
+            "description": "Token del enlace personal: /p#<participantToken>. Se devuelve solo esta vez."
+          }
+        },
+        "required": [
+          "participant",
+          "participantToken"
+        ]
+      },
+      "ParticipantViewDto": {
+        "type": "object",
+        "properties": {
+          "room": {
+            "$ref": "#/components/schemas/RoomDto"
+          },
+          "me": {
+            "$ref": "#/components/schemas/ParticipantDto"
+          },
+          "participants": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ParticipantDto"
+            }
+          },
+          "maxParticipants": {
+            "type": "number",
+            "example": 30
+          }
+        },
+        "required": [
+          "room",
+          "me",
+          "participants",
+          "maxParticipants"
+        ]
+      },
+      "OrganizerViewDto": {
+        "type": "object",
+        "properties": {
+          "room": {
+            "$ref": "#/components/schemas/RoomDto"
+          },
+          "inviteCode": {
+            "type": "string",
+            "description": "Código del enlace de invitación."
+          },
+          "participants": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ParticipantDto"
+            }
+          },
+          "maxParticipants": {
+            "type": "number",
+            "example": 30
+          }
+        },
+        "required": [
+          "room",
+          "inviteCode",
+          "participants",
+          "maxParticipants"
         ]
       }
     }

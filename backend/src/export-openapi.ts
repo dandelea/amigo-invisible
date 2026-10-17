@@ -8,6 +8,10 @@ import type { NestExpressApplication } from '@nestjs/platform-express';
 import { AppModule } from './app.module.js';
 import { buildOpenApi, configureApp } from './setup.js';
 
+// La exportación no consulta la base de datos (el pool no conecta hasta la
+// primera consulta), pero la configuración exige una URL.
+process.env.DATABASE_URL ??= 'postgres://openapi@localhost:5432/openapi';
+
 const app = await NestFactory.create<NestExpressApplication>(AppModule, {
   logger: false,
 });
