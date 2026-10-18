@@ -27,8 +27,10 @@ import { roomSummary } from '@/lib/room';
 import { errorText, t } from '@/texts/es';
 import { NotFoundScreen } from './join-page';
 import { LiveRoomFallback } from './live-room-fallback';
+import { usePageTitle } from '@/hooks/use-page-title';
 
 export function OrganizerPage() {
+  usePageTitle(t.organizer.title);
   const token = tokenFromHash(useLocation().hash);
   const { state, reload } = useLiveRoom('organizer', token, getOrganizerView);
   const [editing, setEditing] = useState(false);

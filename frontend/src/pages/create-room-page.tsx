@@ -14,8 +14,10 @@ import {
   useRoomForm,
 } from '@/hooks/use-room-form';
 import { errorText, t } from '@/texts/es';
+import { usePageTitle } from '@/hooks/use-page-title';
 
 export function CreateRoomPage() {
+  usePageTitle(t.create.title);
   const navigate = useNavigate();
   const form = useRoomForm();
   const [serverError, setServerError] = useState<string | null>(null);

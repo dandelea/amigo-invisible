@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 import { Card } from '@/components/ui/card';
 import { PageLayout } from './page-layout';
+import { usePageTitle } from '@/hooks/use-page-title';
 
 // Pantalla de estado (sala llena, cerrada, no encontrado, sin salas,
 // cargando…): una tarjeta centrada con título, texto y acción opcional.
@@ -15,6 +16,7 @@ export function StatusScreen({
   spinner?: boolean;
   action?: ReactNode;
 }) {
+  usePageTitle(title);
   return (
     <PageLayout className="justify-center">
       <Card

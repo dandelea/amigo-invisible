@@ -53,3 +53,23 @@ describe('names', () => {
     expect(PARTICIPANT_NAME_PATTERN.test('<b>')).toBe(false);
   });
 });
+
+describe('títulos de página', () => {
+  it('cada pantalla tiene su propio título', async () => {
+    const { renderAt } = await import('@/test/render');
+    const { waitFor } = await import('@testing-library/react');
+    renderAt('/crear');
+    await waitFor(() =>
+      expect(document.title).toBe('Crear sala · Amigo Invisible'),
+    );
+  });
+
+  it('una ruta desconocida se titula «No encontrado»', async () => {
+    const { renderAt } = await import('@/test/render');
+    const { waitFor } = await import('@testing-library/react');
+    renderAt('/no-existe');
+    await waitFor(() =>
+      expect(document.title).toBe('No encontrado · Amigo Invisible'),
+    );
+  });
+});

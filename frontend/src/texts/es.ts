@@ -70,6 +70,7 @@ export const t = {
 
   join: {
     invited: 'Te han invitado',
+    pageTitle: (room: string) => `Unirse a ${room}`,
     alreadyIn: 'Ya están dentro',
     nobodyYet: 'Todavía no hay nadie. ¡Sé la primera persona!',
     name: 'Tu nombre',
@@ -220,7 +221,7 @@ export const t = {
     seenProgress: (seen: number, total: number) =>
       `${seen} de ${total} han visto su resultado`,
     more: 'Más',
-    moreLabel: 'Ver quién ha visto su resultado',
+    moreLabel: 'Más: ver quién ha visto su resultado',
     seenHint:
       'Con «Más» ves quién ha abierto su resultado, nunca qué les ha tocado.',
     seenDialogHint:

@@ -6,8 +6,10 @@ import { StepCard } from '@/components/step-card';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { t } from '@/texts/es';
+import { usePageTitle } from '@/hooks/use-page-title';
 
 export function HomePage() {
+  usePageTitle(null);
   // null mientras no se sabe (o si falla la consulta): se deja intentar y
   // la pantalla de crear sala informa del error si lo hay.
   const [canCreate, setCanCreate] = useState<boolean | null>(null);

@@ -18,6 +18,7 @@ import {
   PARTICIPANT_NAME_PATTERN,
 } from '@/lib/names';
 import { errorText, t } from '@/texts/es';
+import { usePageTitle } from '@/hooks/use-page-title';
 
 type LoadState =
   | { status: 'loading' }
@@ -39,6 +40,11 @@ export function JoinPage() {
   const [serverError, setServerError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [attempt, setAttempt] = useState(0);
+  usePageTitle(
+    load.status === 'ready'
+      ? t.join.pageTitle(load.invitation.room.name)
+      : null,
+  );
 
   useEffect(() => {
     let active = true;

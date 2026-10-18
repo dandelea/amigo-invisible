@@ -16,6 +16,7 @@ import { personalUrl, tokenFromHash } from '@/lib/links';
 import { t } from '@/texts/es';
 import { NotFoundScreen } from './join-page';
 import { LiveRoomFallback } from './live-room-fallback';
+import { usePageTitle } from '@/hooks/use-page-title';
 
 export function ParticipantPage() {
   const location = useLocation();
@@ -29,6 +30,7 @@ export function ParticipantPage() {
     token,
     getParticipantView,
   );
+  usePageTitle(state.status === 'ready' ? state.data.room.name : null);
   const [confirmLeave, setConfirmLeave] = useState(false);
 
   if (!token) return <NotFoundScreen />;

@@ -11,11 +11,13 @@ import { Pill } from '@/components/ui/pill';
 import { formatBudget, formatLongDate } from '@/lib/format';
 import { inviteUrl, managePath, manageUrl } from '@/lib/links';
 import { t } from '@/texts/es';
+import { usePageTitle } from '@/hooks/use-page-title';
 
 // Se llega aquí justo después de crear la sala. Los enlaces viajan en el
 // estado de la navegación (en memoria): si se recarga, se vuelve al inicio,
 // porque el enlace de gestión solo se muestra una vez.
 export function RoomCreatedPage() {
+  usePageTitle(t.created.title);
   const created = useLocation().state as CreateRoomResponse | null;
   // Los datos editados aquí se muestran al momento.
   const [room, setRoom] = useState(created?.room);

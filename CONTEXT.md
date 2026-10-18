@@ -4,7 +4,7 @@ Resumen para traspasos entre agentes. La fuente de verdad es [`Prompt_inicial_Am
 
 ## Fase actual
 
-**Fase 5a (robustez y seguridad): terminada el 18 de octubre de 2026, pendiente de revisión del usuario.** Siguiente: **Fase 5b** (accesibilidad, test e2e con Playwright y despliegue acompañado), con el plan de abajo.
+**Fase 5 (pulido): terminada el 18 de octubre de 2026, pendiente de revisión del usuario. El MVP del prompt está completo.** Siguiente: **despliegue real acompañado** (el usuario crea las cuentas y pega las claves siguiendo «Despliegue manual» del README; después se comprueba la app desplegada).
 
 ## Fase 5: plan confirmado
 
@@ -17,6 +17,33 @@ Resumen para traspasos entre agentes. La fuente de verdad es [`Prompt_inicial_Am
   - **test e2e con Playwright** en `e2e/` con el Chrome del sistema (crear sala → unirse → pareja → sortear → resultado), decidido por el usuario el 18/10/2026;
   - despliegue manual documentado paso a paso (Neon, R2, Render y Cloudflare Pages), con `render.yaml`, `.nvmrc` y `engines`.
   - **Despliegue real**: documentar y acompañar al usuario, que crea las cuentas y pega las claves (Claude no crea cuentas ni introduce credenciales), y después comprobar la app desplegada. Decidido por el usuario el 18/10/2026.
+
+## Fase 5b: resumen
+
+### Hecho
+
+- **Tests e2e de navegador** (`e2e/`, Playwright con el Chrome del sistema, sin descargar navegadores; `npm run e2e` en la raíz):
+  - `flow.spec.ts`: recorrido completo con cada persona en su navegador (crear, unirse, pareja, sortear, movimiento reducido, ruleta saltada, contador del organizador que sube solo, el organizador nunca ve «tu amigo invisible es», sala cerrada), nombre repetido y enlace inválido.
+  - `a11y.spec.ts`: axe (WCAG 2.1 A y AA, contraste incluido) en 13 pantallas y diálogos, y crear una sala solo con el teclado.
+  - `playwright.config.ts` reutiliza backend y frontend si ya están arrancados, o los compila y arranca. `global-teardown.ts` borra las salas «E2E ·» con el script de la 5a.
+- **Accesibilidad**:
+  - axe encontró un problema real y está corregido: el botón «Más» tenía un nombre accesible sin el texto visible (WCAG 2.5.3). Ahora es «Más: ver quién ha visto su resultado».
+  - Cada pantalla tiene su título (`usePageTitle`; `StatusScreen` lo pone automáticamente).
+- **Despliegue preparado**:
+  - `.nvmrc` y `engines` (Node ≥ 24) en la raíz y en los dos paquetes;
+  - `render.yaml` (Blueprint gratuito en Frankfurt, `npm ci --include=dev` porque `NODE_ENV=production` omitiría las dependencias de desarrollo, `/health`, sin despliegue automático; los secretos con `sync: false`);
+  - guía paso a paso en el README (Neon → R2 → Render → Pages → CORS), con migraciones desde local con la cadena directa de Neon y la app con la _pooled_.
+  - Simulado el build de Render en una copia limpia con `NODE_ENV=production`: instala, compila, arranca y responde en `/health`.
+- **Tests**: frontend 88; backend 65 unitarios y 132 de integración; e2e 4 (con axe en 13 pantallas).
+
+### Decisiones
+
+- axe se pasa en un navegador real y no en jsdom, porque jsdom no puede calcular el contraste.
+- Pages se configura sin despliegues automáticos, para respetar el despliegue manual del prompt.
+
+### Pendiente
+
+- Despliegue real con el usuario.
 
 ## Fase 5a: resumen
 

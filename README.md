@@ -4,11 +4,11 @@ Aplicación web de “Amigo Invisible” (Secret Santa) para grupos, pensada par
 
 Proyecto personal y de aprendizaje, gratuito y sin monetización. Solo en español.
 
-> **Estado:** Fase 5a cerrada: pantalla «Despertando el servidor», script de borrado de salas y revisión de seguridad ([`docs/seguridad.md`](docs/seguridad.md)). Quedan accesibilidad, test e2e de navegador y despliegue (Fase 5b). Ver [`CONTEXT.md`](CONTEXT.md).
+> **Estado:** MVP terminado (Fase 5 cerrada): sorteo completo, accesibilidad revisada con axe, tests unitarios, de integración y e2e, revisión de seguridad ([`docs/seguridad.md`](docs/seguridad.md)) y despliegue documentado paso a paso. Ver [`CONTEXT.md`](CONTEXT.md).
 
 ## Requisitos
 
-- Node.js 24 o superior y npm 11.
+- Node.js 24 o superior (`.nvmrc`) y npm 11.
 - Docker, para el PostgreSQL y el almacenamiento S3 de desarrollo (`docker-compose.yml`) y para los tests de integración (Testcontainers).
 - En producción: una base de datos PostgreSQL en Neon y un bucket de Cloudflare R2.
 
@@ -29,6 +29,9 @@ package.json    Herramientas comunes: Prettier, Husky y lint-staged
 CONTEXT.md      Estado del proyecto para traspasos
 docker-compose.yml  PostgreSQL (puerto 54329) y S3 local con VersityGW (puerto 59000)
 Prompt_inicial_Amigo_Invisible.md   Fuente de verdad del proyecto
+e2e/            Tests e2e y de accesibilidad (Playwright)
+render.yaml     Blueprint del backend en Render
+.nvmrc          Versión de Node (24)
 ```
 
 ## Instalación
@@ -120,7 +123,18 @@ npm run test:e2e    # integración (necesita Docker: PostgreSQL 17 y VersityGW c
 
 cd frontend
 npm test            # componentes y pantallas (Testing Library), con la API y el socket simulados
+
+npm run e2e         # desde la raíz: e2e y accesibilidad en el Chrome del sistema (Playwright)
 ```
+
+Los tests e2e (`e2e/`) necesitan `docker compose up -d` y `backend/.env`. Si backend y frontend no están arrancados, Playwright los compila y los arranca. Cubren:
+
+- el recorrido completo, cada persona en su navegador: crear la sala, unirse, pareja, sortear, ruleta, resultado y contador del organizador;
+- nombre repetido y enlace inválido;
+- crear una sala solo con el teclado;
+- **axe** (WCAG 2.1 A y AA, contraste incluido) en 13 pantallas y diálogos.
+
+Al terminar borran sus salas de prueba (cuyo nombre empieza por «E2E ·»).
 
 ## Seguridad
 
@@ -268,12 +282,74 @@ Las condiciones de las capas gratuitas se comprobaron el 17 de octubre de 2026; 
 
 ## Despliegue manual
 
-Se completa en la Fase 5. Esquema previsto:
+Todo en capas gratuitas. Orden recomendado: **Neon → R2 → Render → Cloudflare Pages → ajustar CORS**, porque cada paso necesita un dato del anterior. Las claves se pegan solo en los paneles de cada servicio, nunca en el repositorio.
 
-1. **Base de datos:** crear el proyecto en Neon y aplicar las migraciones desde local con `DATABASE_URL` apuntando a Neon: `cd backend && npm run db:migrate`.
-2. **Backend:** servicio web en Render con raíz `backend/`, build `npm ci && npm run build`, arranque `npm run start:prod` y las variables de entorno de la tabla.
-3. **Frontend:** proyecto en Cloudflare Pages con raíz `frontend/`, build `npm ci && npm run build`, salida `dist` y `VITE_API_URL`.
-4. **R2:** crear el bucket y un token de API con permiso de lectura y escritura solo sobre ese bucket. Poner en Render `S3_ENDPOINT=https://<cuenta>.r2.cloudflarestorage.com`, `S3_REGION=auto`, la clave, el secreto y `S3_BUCKET`. No hace falta configurar CORS: el navegador descarga los archivos navegando a la URL firmada. Configurar una alerta de facturación.
+### 1. Base de datos (Neon)
+
+1. Crear una cuenta y un proyecto en [neon.com](https://neon.com), en una región de Europa (p. ej. Frankfurt).
+2. En «Connect», copiar dos cadenas de conexión:
+   - la **directa** (sin `-pooler` en el host), para las migraciones;
+   - la **pooled** (con `-pooler`), para la app.
+     Las dos deben llevar `?sslmode=require`.
+3. Aplicar las migraciones desde tu equipo con la cadena directa, sin guardarla en ningún archivo:
+
+   ```bash
+   cd backend
+   DATABASE_URL='<cadena directa de Neon>' npm run db:migrate
+   ```
+
+### 2. Archivos (Cloudflare R2)
+
+1. En el panel de Cloudflare, R2 → activar R2 (pide una tarjeta para verificar, sin cobro dentro de la capa gratuita) y crear un bucket (p. ej. `amigo-invisible`).
+2. R2 → «Manage API tokens» → crear un token con permiso **Object Read & Write** solo sobre ese bucket. Guardar el _Access Key ID_ y el _Secret Access Key_ (el secreto se muestra una sola vez).
+3. El endpoint es `https://<id de cuenta>.r2.cloudflarestorage.com` (aparece en la página del bucket).
+4. Recomendado: crear una alerta de facturación en Cloudflare. No hace falta configurar CORS en el bucket: los archivos se descargan navegando a la URL firmada.
+
+### 3. Backend (Render)
+
+1. En [render.com](https://render.com), «New» → «Blueprint» → conectar este repositorio. Render lee `render.yaml`:
+   - servicio web gratuito en Frankfurt, con raíz `backend/`;
+   - build `npm ci --include=dev && npm run build` y arranque `npm run start:prod`;
+   - comprobación en `/health` y Node 24;
+   - sin despliegue automático.
+2. Rellenar las variables que el blueprint deja vacías:
+
+   | Variable                                    | Valor                                                    |
+   | ------------------------------------------- | -------------------------------------------------------- |
+   | `DATABASE_URL`                              | La cadena **pooled** de Neon                             |
+   | `CORS_ORIGIN`                               | De momento `https://example.com`; se cambia en el paso 5 |
+   | `S3_ENDPOINT`                               | `https://<id de cuenta>.r2.cloudflarestorage.com`        |
+   | `S3_ACCESS_KEY_ID` / `S3_SECRET_ACCESS_KEY` | Las del token de R2                                      |
+   | `S3_BUCKET`                                 | El nombre del bucket                                     |
+
+3. Lanzar el despliegue («Manual Deploy»). Al terminar, `https://<servicio>.onrender.com/health` debe responder `{"status":"ok"}` y Swagger estar en `/api/docs`.
+
+### 4. Frontend (Cloudflare Pages)
+
+1. Cloudflare → «Workers & Pages» → «Create» → «Pages» → conectar este repositorio.
+2. Configuración de build:
+
+   | Opción               | Valor                                                                                |
+   | -------------------- | ------------------------------------------------------------------------------------ |
+   | Directorio raíz      | `frontend`                                                                           |
+   | Comando de build     | `npm ci && npm run build`                                                            |
+   | Directorio de salida | `dist`                                                                               |
+   | Variables de entorno | `VITE_API_URL=https://<servicio>.onrender.com` (sin barra final) y `NODE_VERSION=24` |
+
+3. Desactivar los despliegues automáticos (ver «Actualizaciones posteriores») y desplegar. Pages aplica `dist/_headers` (CSP con la URL del backend) y, al no haber `404.html`, sirve `index.html` en cualquier ruta, así que los enlaces `/s/…`, `/p#…` y `/o#…` funcionan.
+
+### 5. Ajustar CORS y comprobar
+
+1. En Render, cambiar `CORS_ORIGIN` a la URL de Pages (`https://<proyecto>.pages.dev`) y volver a desplegar.
+2. Comprobar desde el móvil:
+   - crear una sala, unirse desde otro navegador, sortear y ver el resultado;
+   - subir un archivo a la lista de deseos y descargarlo.
+3. La primera visita tras 15 minutos sin uso mostrará «Despertando el servidor» durante ~1 minuto: es lo normal en el plan gratuito.
+
+### Actualizaciones posteriores
+
+- **Backend**: si hay migraciones nuevas, aplicarlas primero (paso 1.3) y después «Manual Deploy» en Render.
+- **Frontend**: para mantener el despliegue manual del MVP, desactivar en Pages los despliegues automáticos («Settings» → «Builds» → «Automatic deployments») y lanzarlos a mano desde su panel («Retry deployment» o «Create deployment»).
 
 ## Borrado de salas
 

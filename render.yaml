@@ -1,0 +1,40 @@
+# Blueprint de Render para el backend (plan gratuito). Render → New →
+# Blueprint → este repositorio. Las variables marcadas con `sync: false` se
+# rellenan a mano en el panel (nunca en este archivo). Ver README, «Despliegue».
+services:
+  - type: web
+    name: amigo-invisible-api
+    runtime: node
+    plan: free
+    region: frankfurt
+    rootDir: backend
+    # NODE_ENV=production haría que npm ci omitiera las dependencias de
+    # desarrollo, que hacen falta para compilar.
+    buildCommand: npm ci --include=dev && npm run build
+    startCommand: npm run start:prod
+    healthCheckPath: /health
+    # Despliegue manual: se lanza desde el panel cuando se quiera.
+    autoDeploy: false
+    envVars:
+      - key: NODE_VERSION
+        value: '24'
+      - key: NODE_ENV
+        value: production
+      - key: MAX_ROOMS
+        value: '10'
+      - key: TRUST_PROXY
+        value: '1'
+      - key: S3_REGION
+        value: auto
+      - key: DATABASE_URL
+        sync: false
+      - key: CORS_ORIGIN
+        sync: false
+      - key: S3_ENDPOINT
+        sync: false
+      - key: S3_ACCESS_KEY_ID
+        sync: false
+      - key: S3_SECRET_ACCESS_KEY
+        sync: false
+      - key: S3_BUCKET
+        sync: false
