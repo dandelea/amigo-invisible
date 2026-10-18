@@ -4,7 +4,54 @@ Resumen para traspasos entre agentes. La fuente de verdad es [`Prompt_inicial_Am
 
 ## Fase actual
 
-**Fase 4 (sorteo): terminada el 18 de octubre de 2026, pendiente de revisión del usuario.** Siguiente: **Fase 5, pulido**: pantalla «Despertando el servidor», accesibilidad, revisión de seguridad, script de borrado de salas y despliegue manual documentado. Antes de codificar, presentar un plan breve y esperar confirmación.
+**Fase 5a (robustez y seguridad): terminada el 18 de octubre de 2026, pendiente de revisión del usuario.** Siguiente: **Fase 5b** (accesibilidad, test e2e con Playwright y despliegue acompañado), con el plan de abajo.
+
+## Fase 5: plan confirmado
+
+- **5a, robustez y seguridad**:
+  - pantalla «Despertando el servidor» (petición lenta o sin conexión → consultar `/health` hasta que responda, luego continuar; reintentar si tarda demasiado);
+  - script local de borrado de salas (`rooms:list` y `rooms:delete`, que borra los archivos de R2 bajo `rooms/<id>/` y luego la sala en cascada, con confirmación escribiendo el nombre y tests);
+  - revisión de seguridad completa con informe, `npm audit`, `helmet` en el API y `_headers` en Cloudflare Pages (CSP, `X-Frame-Options`, `Referrer-Policy` y `Permissions-Policy`).
+- **5b, accesibilidad, e2e y despliegue**:
+  - axe en los tests, revisión con teclado en Chrome, contraste de la paleta y título por pantalla;
+  - **test e2e con Playwright** en `e2e/` con el Chrome del sistema (crear sala → unirse → pareja → sortear → resultado), decidido por el usuario el 18/10/2026;
+  - despliegue manual documentado paso a paso (Neon, R2, Render y Cloudflare Pages), con `render.yaml`, `.nvmrc` y `engines`.
+  - **Despliegue real**: documentar y acompañar al usuario, que crea las cuentas y pega las claves (Claude no crea cuentas ni introduce credenciales), y después comprobar la app desplegada. Decidido por el usuario el 18/10/2026.
+
+## Fase 5a: resumen
+
+### Hecho
+
+- **«Despertando el servidor»**:
+  - `src/api/server-status.ts` marca el aviso si una petición tarda más de 2,5 s; sin conexión, o con un 502/503/504 del hosting sin JSON, consulta `/health` cada 3 s (máximo 90 s) y reintenta una vez;
+  - `WakingOverlay` es una capa encima de la página, sin perder lo escrito.
+  - Probado en Chrome con el backend parado: aparece y desaparece solo 3,3 s después de arrancarlo.
+- **Script de borrado**:
+  - `npm run rooms -- list | delete <id> [--yes]` (`src/scripts/rooms.ts`, lógica en `src/admin/room-admin.ts`);
+  - borra primero los archivos (`StorageService.deletePrefix('rooms/<id>/')`) y después la sala en cascada, con confirmación escribiendo el nombre;
+  - 4 tests de integración y prueba real contra la base de datos de desarrollo.
+- **Seguridad** (informe en `docs/seguridad.md`):
+  - `helmet` en el API (sin CSP: solo JSON y Swagger);
+  - `frontend/security-headers.ts` genera `dist/_headers` para Cloudflare Pages al compilar: CSP con `connect-src` al backend (HTTP y WebSocket, desde `VITE_API_URL`), `X-Frame-Options`, `Referrer-Policy: no-referrer` y `Permissions-Policy`;
+  - el CLI de shadcn pasa a devDependencies; `npm audit --omit=dev` da 0 en todo.
+- **Cambios pedidos por el usuario durante la fase** (prompt y `MOCKUPS.md` actualizados):
+  - **ruleta con clic por nombre** (Web Audio, `lib/click-sound.ts`), alineado con la flecha: medido en Chrome, desfase menor de 1 px en la parte lenta;
+  - **frenada progresiva** (`lib/roulette-motion.ts`): la velocidad cae como (1-t)^4 hasta una velocidad final de una fila cada 0,9 s, así que el último nombre no se arrastra; como mucho un clic cada 45 ms al principio;
+  - **solo resultados posibles** en la ruleta: sin uno mismo ni su pareja si la regla está activa;
+  - **lista de deseos editable también tras el sorteo**: el backend usa `lockRoom` en lugar de `lockOpenRoom` para las listas; salir, expulsar, parejas y datos siguen bloqueados;
+  - botón **«Ver listas de deseos»** tras el sorteo, con un listado (`AllWishlistsButton`) que abre enlaces o descarga archivos.
+  - En «Ya se ha sorteado» el botón sustituye a la lista de participantes, y la nota de la ruleta pasa al final.
+- **Tests**: backend 65 unitarios y 132 de integración; frontend 86.
+
+### Decisiones
+
+- Sin confirmación al volver a intentar tras despertar: solo se reintenta si la petición no llegó a la app, así que no duplica nada.
+- El `_headers` se genera al compilar (la CSP necesita la URL del backend, que depende del entorno).
+- Se ha comprobado la sincronización del sonido midiendo la posición de la cinta en cada clic, porque desde aquí no se puede escuchar.
+
+### Pendiente
+
+- Fase 5b.
 
 ## Fase 4: plan confirmado
 

@@ -7,6 +7,7 @@ import {
 } from '@nestjs/common';
 import type { NestExpressApplication } from '@nestjs/platform-express';
 import { DocumentBuilder, OpenAPIObject, SwaggerModule } from '@nestjs/swagger';
+import helmet from 'helmet';
 import { ErrorResponseDto } from './common/error-response.dto.js';
 import { HttpExceptionFilter } from './common/http-exception.filter.js';
 import type { Env } from './config/env.js';
@@ -40,6 +41,10 @@ function validationErrors(errors: ValidationError[]): BadRequestException {
 export function configureApp(app: NestExpressApplication): void {
   const env = app.get<Env>(ENV);
   app.set('trust proxy', env.TRUST_PROXY);
+  // Cabeceras de seguridad (nosniff, HSTS, frameguard, sin X-Powered-By…).
+  // La API solo devuelve JSON, así que su CSP no aporta y rompería Swagger
+  // UI; la CSP que protege a las personas va en el frontend (_headers).
+  app.use(helmet({ contentSecurityPolicy: false }));
   app.enableCors({ origin: env.CORS_ORIGIN });
   app.setGlobalPrefix('api', {
     exclude: [{ path: 'health', method: RequestMethod.GET }],

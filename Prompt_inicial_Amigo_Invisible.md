@@ -54,9 +54,9 @@ No desarrollar: cuentas de usuario, email o notificaciones push, pagos o monetiz
 - Entra con el enlace de invitación y escribe su nombre. Si el nombre ya existe en la sala (sin distinguir mayúsculas ni tildes), se rechaza y se pide otro.
 - Recibe su enlace personal único para volver a ver su resultado. Si lo pierde, el organizador lo regenera.
 - Ve en tiempo real la lista de participantes, con las parejas indicadas y los datos de la sala.
-- Antes del sorteo puede añadir, cambiar o quitar (dejar vacía) su lista de deseos y salirse de la sala (su nombre queda libre y se eliminan su lista y su pareja).
-- Su lista de deseos es visible para todos en todo momento.
-- Al sortear ve una ruleta de nombres de unos 15 segundos (cambiado de 3–5 s por el usuario el 18/10/2026) que se detiene en su asignado, solo la primera vez. Después ve únicamente su asignación, sin animación. La ruleta arranca cuando el participante pulsa “Descubrir mi amigo invisible”, y vuelve a mostrarse una vez tras repetir el sorteo. Tiene un botón “Saltar animación” para ir directo al resultado (recuperado del mockup por el usuario el 18/10/2026, junto con la duración de 15 s).
+- Puede añadir, cambiar o quitar (dejar vacía) su lista de deseos en cualquier momento, también después del sorteo (cambiado por el usuario el 18/10/2026). Salirse de la sala solo antes del sorteo (su nombre queda libre y se eliminan su lista y su pareja).
+- Su lista de deseos es visible para todos en todo momento. Después del sorteo, un botón «Ver listas de deseos» abre una ventana con el listado de las listas de los demás (decidido por el usuario el 18/10/2026).
+- Al sortear ve una ruleta de nombres de unos 15 segundos (cambiado de 3–5 s por el usuario el 18/10/2026) que se detiene en su asignado, solo la primera vez. Después ve únicamente su asignación, sin animación. La ruleta solo muestra resultados posibles (nunca a uno mismo ni a su pareja si la regla está activa), frena de forma progresiva y hace un clic cada vez que un nombre queda alineado con la flecha (pedido por el usuario el 18/10/2026). La ruleta arranca cuando el participante pulsa “Descubrir mi amigo invisible”, y vuelve a mostrarse una vez tras repetir el sorteo. Tiene un botón “Saltar animación” para ir directo al resultado (recuperado del mockup por el usuario el 18/10/2026, junto con la duración de 15 s).
 - Nunca ve asignaciones ajenas.
 
 ## Reglas del sorteo

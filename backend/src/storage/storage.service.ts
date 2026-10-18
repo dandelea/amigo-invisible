@@ -2,6 +2,7 @@ import { randomBytes } from 'node:crypto';
 import {
   CreateBucketCommand,
   DeleteObjectCommand,
+  ListObjectsV2Command,
   GetObjectCommand,
   HeadBucketCommand,
   PutObjectCommand,
@@ -76,6 +77,31 @@ export class StorageService implements OnModuleInit {
       const name = error instanceof Error ? error.name : 'Unknown';
       this.logger.error(`No se pudo borrar un archivo (${name})`);
     }
+  }
+
+  // Borra todos los objetos bajo un prefijo (p. ej. rooms/<id>/) y devuelve
+  // cuántos había. Solo lo usa el script de borrado de salas.
+  async deletePrefix(prefix: string): Promise<number> {
+    let deleted = 0;
+    let token: string | undefined;
+    do {
+      const page = await this.client.send(
+        new ListObjectsV2Command({
+          Bucket: this.bucket,
+          Prefix: prefix,
+          ContinuationToken: token,
+        }),
+      );
+      for (const object of page.Contents ?? []) {
+        if (!object.Key) continue;
+        await this.client.send(
+          new DeleteObjectCommand({ Bucket: this.bucket, Key: object.Key }),
+        );
+        deleted++;
+      }
+      token = page.IsTruncated ? page.NextContinuationToken : undefined;
+    } while (token);
+    return deleted;
   }
 
   // URL firmada de descarga, como adjunto y con el nombre indicado.

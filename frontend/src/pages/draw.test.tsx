@@ -288,6 +288,44 @@ describe('Participante: sorteo', () => {
     expect(api.markAssignmentSeen).toHaveBeenCalledWith(TOKEN, 1);
   });
 
+  it('la ruleta solo muestra resultados posibles: ni ella misma ni su pareja', async () => {
+    vi.mocked(prefersReducedMotion).mockReturnValue(false);
+    vi.mocked(api.getParticipantView).mockResolvedValue({
+      ...view({ round: 1, seen: false }),
+      pairs: [{ id: 'p1', participantIds: ['id-Marta', 'id-Pablo'] }],
+    });
+    vi.mocked(api.getAssignment).mockResolvedValue(assignment());
+    const { user } = renderAt(`/p#${TOKEN}`);
+    await user.click(
+      await screen.findByRole('button', { name: t.draw.discover }),
+    );
+    await screen.findByText(t.draw.spinning);
+    const reel = [...document.querySelectorAll('ul li')].map(
+      (li) => li.textContent,
+    );
+    expect(new Set(reel)).toEqual(new Set(['Ana', 'Luis', 'Carla']));
+  });
+
+  it('sin la regla de pareja, la pareja sí puede salir en la ruleta', async () => {
+    vi.mocked(prefersReducedMotion).mockReturnValue(false);
+    vi.mocked(api.getParticipantView).mockResolvedValue({
+      ...view({ round: 1, seen: false }),
+      room: { ...drawnRoom, pairRuleEnabled: false },
+      pairs: [{ id: 'p1', participantIds: ['id-Marta', 'id-Pablo'] }],
+    });
+    vi.mocked(api.getAssignment).mockResolvedValue(assignment());
+    const { user } = renderAt(`/p#${TOKEN}`);
+    await user.click(
+      await screen.findByRole('button', { name: t.draw.discover }),
+    );
+    await screen.findByText(t.draw.spinning);
+    const reel = new Set(
+      [...document.querySelectorAll('ul li')].map((li) => li.textContent),
+    );
+    expect(reel.has('Pablo')).toBe(true);
+    expect(reel.has('Marta')).toBe(false);
+  });
+
   it('«Saltar animación» lleva al resultado al momento', async () => {
     vi.mocked(prefersReducedMotion).mockReturnValue(false);
     vi.mocked(api.getParticipantView).mockResolvedValue(

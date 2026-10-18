@@ -980,16 +980,6 @@
               }
             }
           },
-          "409": {
-            "description": "ROOM_CLOSED",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponseDto"
-                }
-              }
-            }
-          },
           "429": {
             "description": "TOO_MANY_REQUESTS",
             "content": {
@@ -1067,16 +1057,6 @@
               }
             }
           },
-          "409": {
-            "description": "ROOM_CLOSED",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponseDto"
-                }
-              }
-            }
-          },
           "413": {
             "description": "FILE_TOO_LARGE",
             "content": {
@@ -1129,16 +1109,6 @@
           },
           "404": {
             "description": "NOT_FOUND",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponseDto"
-                }
-              }
-            }
-          },
-          "409": {
-            "description": "ROOM_CLOSED",
             "content": {
               "application/json": {
                 "schema": {

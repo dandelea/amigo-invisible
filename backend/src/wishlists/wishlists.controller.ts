@@ -15,7 +15,6 @@ import {
   ApiBadRequestResponse,
   ApiBearerAuth,
   ApiBody,
-  ApiConflictResponse,
   ApiConsumes,
   ApiNoContentResponse,
   ApiNotFoundResponse,
@@ -57,7 +56,6 @@ export class WishlistsController {
   @ApiBody({ type: WishlistLinkDto })
   @ApiOkResponse({ type: WishlistDto })
   @ApiBadRequestResponse({ ...errors, description: 'VALIDATION_ERROR' })
-  @ApiConflictResponse({ ...errors, description: 'ROOM_CLOSED' })
   setLink(
     @CurrentParticipant() me: Participant,
     @Body() dto: WishlistLinkDto,
@@ -96,7 +94,6 @@ export class WishlistsController {
     ...errors,
     description: 'UNSUPPORTED_FILE_TYPE',
   })
-  @ApiConflictResponse({ ...errors, description: 'ROOM_CLOSED' })
   setFile(
     @CurrentParticipant() me: Participant,
     @UploadedFile() file: Express.Multer.File | undefined,
@@ -108,7 +105,6 @@ export class WishlistsController {
   @HttpCode(204)
   @ApiOperation({ summary: 'Quita la lista de deseos' })
   @ApiNoContentResponse()
-  @ApiConflictResponse({ ...errors, description: 'ROOM_CLOSED' })
   remove(@CurrentParticipant() me: Participant): Promise<void> {
     return this.wishlists.remove(me);
   }

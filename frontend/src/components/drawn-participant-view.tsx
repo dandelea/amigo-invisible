@@ -3,14 +3,14 @@ import { ApiError } from '@/api/client';
 import { getAssignment, markAssignmentSeen } from '@/api/rooms';
 import type { Assignment, ParticipantView } from '@/api/types';
 import { PageLayout } from '@/components/page-layout';
-import { ParticipantList } from '@/components/participant-list';
+import { MyWishlist } from '@/components/my-wishlist';
 import { RoomHeader } from '@/components/room-header';
 import { Roulette } from '@/components/roulette';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Pill } from '@/components/ui/pill';
 import { StatusScreen } from '@/components/status-screen';
-import { WishlistButton } from '@/components/wishlist';
+import { AllWishlistsButton } from '@/components/wishlist';
 import { prefersReducedMotion } from '@/lib/motion';
 import { errorText, t } from '@/texts/es';
 import { DrawResult, RepeatedNotice, RevealCard } from './draw-reveal';
@@ -52,6 +52,20 @@ export function DrawnParticipantView({
     };
   }, [phase, token, attempt]);
 
+  // Tras el sorteo se puede seguir cambiando la lista propia y consultar las
+  // de los demás (decisión del usuario, Fase 5).
+  const mine = participants.find((p) => p.id === me.id)?.wishlist ?? null;
+  const wishlists = (
+    <>
+      <MyWishlist token={token} wishlist={mine} editable />
+      <AllWishlistsButton
+        token={token}
+        participants={participants}
+        meId={me.id}
+      />
+    </>
+  );
+
   function showResult() {
     setPhase('result');
     // El contador del organizador; si falla, no impide ver el resultado.
@@ -84,7 +98,16 @@ export function DrawnParticipantView({
 
   if (phase === 'spinning') {
     if (!assignment) return <StatusScreen title={t.loading} spinner />;
-    const names = participants.filter((p) => p.id !== me.id).map((p) => p.name);
+    // Solo resultados posibles: ni uno mismo ni su pareja si la regla está
+    // activa (son datos que el participante ya ve en la sala).
+    const partner = room.pairRuleEnabled
+      ? pairs
+          .find((p) => p.participantIds.includes(me.id))
+          ?.participantIds.find((id) => id !== me.id)
+      : undefined;
+    const names = participants
+      .filter((p) => p.id !== me.id && p.id !== partner)
+      .map((p) => p.name);
     return (
       <PageLayout className="lg:max-w-[560px]">
         <Pill>{t.draw.live}</Pill>
@@ -114,7 +137,9 @@ export function DrawnParticipantView({
           me={me.name}
           room={room}
           assignment={assignment}
-        />
+        >
+          {wishlists}
+        </DrawResult>
       </PageLayout>
     );
   }
@@ -130,29 +155,19 @@ export function DrawnParticipantView({
       />
       {repeated && <RepeatedNotice />}
       <RevealCard name={me.name} repeated={repeated} onDiscover={discover} />
-      {repeated ? (
+      {repeated && (
         <Card>
           <h2 className="text-[17px] font-semibold">{t.draw.sameLinkTitle}</h2>
           <p className="text-[13px] text-muted-foreground">
             {t.draw.sameLinkBody}
           </p>
         </Card>
-      ) : (
-        <>
-          <ParticipantList
-            participants={participants}
-            pairs={pairs}
-            meId={me.id}
-            renderTrailing={(p) =>
-              p.id === me.id ? null : (
-                <WishlistButton token={token} participant={p} />
-              )
-            }
-          />
-          <p className="text-center text-[13px] text-muted-foreground">
-            {t.draw.closedNote}
-          </p>
-        </>
+      )}
+      {wishlists}
+      {!repeated && (
+        <p className="text-center text-[13px] text-muted-foreground">
+          {t.draw.closedNote}
+        </p>
       )}
     </PageLayout>
   );

@@ -250,24 +250,68 @@ describe('Participante: parejas y deseos', () => {
     ).toBeInTheDocument();
   });
 
-  it('tras el sorteo no se puede editar ni salir', async () => {
+  it('tras el sorteo no se puede salir, pero sí cambiar la lista propia', async () => {
     vi.mocked(api.getParticipantView).mockResolvedValue(
       view({
         room: { ...room, status: 'drawn' },
         draw: { round: 1, seen: false },
       }),
     );
-    renderAt(`/p#${TOKEN}`);
+    vi.mocked(api.setWishlistLink).mockResolvedValue(link);
+    const { user } = renderAt(`/p#${TOKEN}`);
     expect(await screen.findByText(t.draw.doneTitle)).toBeInTheDocument();
-    expect(screen.queryByText(t.wishlist.mine)).toBeNull();
-    expect(screen.queryByRole('button', { name: t.wishlist.add })).toBeNull();
     expect(
       screen.queryByRole('button', { name: t.participant.leave }),
     ).toBeNull();
-    // Las listas de los demás se siguen viendo.
+    await user.click(screen.getByRole('button', { name: t.wishlist.add }));
+    const dialog = screen.getByRole('dialog', { name: t.wishlist.mine });
+    await user.type(
+      within(dialog).getByLabelText(t.wishlist.linkField),
+      'https://ejemplo.com/lista',
+    );
+    await user.click(
+      within(dialog).getByRole('button', { name: t.wishlist.save }),
+    );
+    expect(api.setWishlistLink).toHaveBeenCalledWith(
+      TOKEN,
+      'https://ejemplo.com/lista',
+    );
+  });
+
+  it('tras el sorteo, «Ver listas de deseos» muestra las de los demás', async () => {
+    vi.mocked(api.getParticipantView).mockResolvedValue(
+      view({
+        room: { ...room, status: 'drawn' },
+        draw: { round: 1, seen: false },
+      }),
+    );
+    vi.mocked(api.getWishlistDownloadUrl).mockResolvedValue({
+      url: 'https://s3.test/firmada',
+      expiresInSeconds: 300,
+    });
+    const { user } = renderAt(`/p#${TOKEN}`);
+    await user.click(
+      await screen.findByRole('button', { name: t.wishlist.viewAll }),
+    );
+    const dialog = screen.getByRole('dialog', { name: t.wishlist.allTitle });
+    const rows = within(dialog).getAllByRole('listitem');
+    // Todos menos ella misma (Marta).
+    expect(rows.map((r) => r.querySelector('b')?.textContent)).toEqual([
+      'Ana',
+      'Luis',
+      'Carla',
+    ]);
     expect(
-      screen.getByRole('button', { name: t.participant.seeWishes('Ana') }),
+      within(rows[0]).getByRole('link', { name: /Abrir enlace/ }),
+    ).toHaveAttribute('href', link.url);
+    expect(
+      within(rows[1]).getByText(t.participant.noWishlist),
     ).toBeInTheDocument();
+    await user.click(
+      within(rows[2]).getByRole('button', { name: /Descargar archivo/ }),
+    );
+    expect(api.getWishlistDownloadUrl).toHaveBeenCalledWith(TOKEN, 'id-Carla');
+    expect(goToUrl).toHaveBeenCalledWith('https://s3.test/firmada');
   });
 
   it('si el servidor cierra su conexión (expulsión), recarga y ve «No encontrado»', async () => {

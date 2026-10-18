@@ -80,3 +80,10 @@ Confirmado con el usuario el 17 de octubre de 2026:
 
 - Incluidos en el MVP: botón "Quitar" para eliminar la lista de deseos propia; menú de acciones por participante en el panel del organizador (sustituye al botón "Expulsar" visible); botón "Editar" para los datos de la sala, en la sala creada y en el panel del organizador.
 - Botón "Saltar animación" en la ruleta: se descartó al principio y se recuperó el 18/10/2026, cuando la ruleta pasó a durar unos 15 s.
+
+## Cambios posteriores a los mockups (Fase 5)
+
+Pedidos por el usuario el 18/10/2026:
+
+- **Ruleta**: unos 15 s con «Saltar animación»; frenada progresiva; un clic por nombre alineado con la flecha; solo resultados posibles (ni uno mismo ni su pareja con la regla activa).
+- **Tras el sorteo**: «Mi lista de deseos» se puede crear, cambiar y quitar, y el botón «Ver listas de deseos» abre un listado con las listas de los demás. En «Ya se ha sorteado» (`Sorteado`), ese botón sustituye a la lista de participantes.

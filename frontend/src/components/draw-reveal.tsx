@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import { Gift, RefreshCw } from 'lucide-react';
 import type { Assignment, Room } from '@/api/types';
 import { CopyLinkBox } from '@/components/copy-link-box';
@@ -66,11 +67,14 @@ export function DrawResult({
   me,
   room,
   assignment,
+  children,
 }: {
   token: string;
   me: string;
   room: Room;
   assignment: Assignment;
+  // Se muestra antes de la nota final (p. ej. «Mi lista de deseos»).
+  children?: ReactNode;
 }) {
   const { receiver } = assignment;
   return (
@@ -125,6 +129,7 @@ export function DrawResult({
         </p>
         <CopyLinkBox url={personalUrl(token)} primary />
       </Card>
+      {children}
       <p className="text-center text-[13px] text-muted-foreground">
         {t.draw.onlyFirstTime}
       </p>

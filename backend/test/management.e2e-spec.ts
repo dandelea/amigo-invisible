@@ -330,7 +330,7 @@ describe('Gestión de la sala (e2e)', () => {
   });
 
   describe('después del sorteo', () => {
-    it('no se puede cambiar nada', async () => {
+    it('no se puede cambiar la sala, las parejas ni quién participa', async () => {
       const s = await setup();
       const pair = await http(app)
         .post('/api/manage/pairs')
@@ -356,21 +356,36 @@ describe('Gestión de la sala (e2e)', () => {
           .delete(`/api/manage/participants/${s.id('marta')}`)
           .set(org),
         http(app).delete('/api/me').set(ana),
-        http(app)
-          .put('/api/me/wishlist/link')
-          .set(ana)
-          .send({ url: 'https://ejemplo.com' }),
-        http(app)
-          .put('/api/me/wishlist/file')
-          .set(ana)
-          .attach('file', files.png, 'a.png'),
-        http(app).delete('/api/me/wishlist').set(ana),
       ];
       for (const res of await Promise.all(attempts)) {
         expect(res.status).toBe(409);
         expect(res.body.error).toBe('ROOM_CLOSED');
       }
-      // El archivo subido antes de comprobar la sala no se queda huérfano.
+    });
+
+    it('la lista de deseos se puede crear, cambiar y quitar', async () => {
+      const s = await setup();
+      await db.update(rooms).set({ status: 'drawn' });
+      const ana = auth(s.people.ana.participantToken);
+      await http(app)
+        .put('/api/me/wishlist/link')
+        .set(ana)
+        .send({ url: 'https://ejemplo.com' })
+        .expect(200);
+      await http(app)
+        .put('/api/me/wishlist/file')
+        .set(ana)
+        .attach('file', files.png, 'a.png')
+        .expect(200);
+      expect(await storedKeys()).toHaveLength(1);
+      const seen = await http(app)
+        .get('/api/me')
+        .set(auth(s.people.luis.participantToken));
+      expect(
+        seen.body.participants.find((p: { name: string }) => p.name === 'Ana')
+          .wishlist.kind,
+      ).toBe('file');
+      await http(app).delete('/api/me/wishlist').set(ana).expect(204);
       expect(await storedKeys()).toEqual([]);
     });
   });

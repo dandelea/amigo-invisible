@@ -1,26 +1,36 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { ProgressBar } from '@/components/ui/progress-bar';
+import { createClicker } from '@/lib/click-sound';
+import { reelPosition } from '@/lib/roulette-motion';
 import { t } from '@/texts/es';
 
 const ROW = 54; // alto de cada nombre, en px
 const VISIBLE = 7; // nombres a la vista (el del centro es el elegido)
 const PAUSE_MS = 600; // pausa sobre el resultado antes de mostrarlo
+// Separación mínima entre clics: al principio pasan nombres en cada
+// fotograma y sonaría a zumbido; así suena a traqueteo rápido.
+const MIN_TICK_MS = 45;
 
 // Ruleta decorativa: el resultado ya lo ha decidido el servidor. Una cinta
-// de nombres que gira unos 15 s y se frena hasta dejar a `winner` en el
-// centro. Se puede saltar en cualquier momento. Quien use «reducir
-// movimiento» no la ve (la página muestra el resultado directo).
+// de nombres que gira unos 15 s, cada vez más despacio, hasta dejar a
+// `winner` en el centro, con un clic cada vez que un nombre pasa por la
+// franja. `names` son solo los resultados posibles. Se puede saltar en
+// cualquier momento. Quien use «reducir movimiento» no la ve (la página
+// muestra el resultado directo).
 export function Roulette({
   names,
   winner,
   durationMs = 15000,
   onDone,
+  onTick,
 }: {
   names: string[];
   winner: string;
   durationMs?: number;
   onDone: () => void;
+  // Cada vez que un nombre llega a la franja. Por defecto, un clic.
+  onTick?: () => void;
 }) {
   // Cinta: los nombres repetidos varias vueltas, el elegido y unos cuantos
   // detrás para que el centro nunca quede vacío.
@@ -46,19 +56,35 @@ export function Roulette({
   const [offset, setOffset] = useState(0);
   const [elapsed, setElapsed] = useState(0);
   const done = useRef(onDone);
+  const tick = useRef(onTick);
   useEffect(() => {
     done.current = onDone;
-  }, [onDone]);
+    tick.current = onTick;
+  }, [onDone, onTick]);
 
   useEffect(() => {
+    const clicker = tick.current ? null : createClicker();
+    const playTick = () => (tick.current ? tick.current() : clicker?.click());
     let frame = 0;
     let finish: number | undefined;
+    let lastRow = 0;
+    let lastTick = -Infinity;
     const start = performance.now();
     const step = (now: number) => {
       const progress = Math.min(1, (now - start) / durationMs);
-      // Frenada suave (ease-out cúbica).
-      const eased = 1 - Math.pow(1 - progress, 3);
-      setOffset(eased * winnerOffset);
+      const current = reelPosition(progress, winnerOffset, durationMs);
+      // Un clic justo cuando un nombre queda alineado con las flechas (la
+      // cinta ha avanzado un número entero de filas), no cuando pasa el
+      // borde entre dos nombres.
+      const row = Math.floor(current / ROW);
+      if (row !== lastRow) {
+        lastRow = row;
+        if (now - lastTick >= MIN_TICK_MS) {
+          lastTick = now;
+          playTick();
+        }
+      }
+      setOffset(current);
       setElapsed(progress);
       if (progress < 1) frame = requestAnimationFrame(step);
       else finish = window.setTimeout(() => done.current(), PAUSE_MS);
@@ -67,6 +93,7 @@ export function Roulette({
     return () => {
       cancelAnimationFrame(frame);
       window.clearTimeout(finish);
+      clicker?.close();
     };
   }, [durationMs, winnerOffset]);
 

@@ -151,6 +151,12 @@ export const t = {
     openLink: 'Abrir enlace',
     opensNewTab: 'Se abre en una pestaña nueva.',
     download: 'Descargar archivo',
+    downloadShort: 'Descargar',
+    openShort: 'Abrir',
+    viewAll: 'Ver listas de deseos',
+    allTitle: 'Listas de deseos',
+    allHint:
+      'Las listas de los demás participantes. Puedes consultarlas siempre que quieras.',
     downloading: 'Preparando la descarga…',
     linkField: 'Enlace (https)',
     linkHint: 'Debe empezar por https://',

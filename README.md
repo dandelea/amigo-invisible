@@ -4,7 +4,7 @@ Aplicación web de “Amigo Invisible” (Secret Santa) para grupos, pensada par
 
 Proyecto personal y de aprendizaje, gratuito y sin monetización. Solo en español.
 
-> **Estado:** Fase 4 cerrada: el MVP ya hace el sorteo completo (en directo, con ruleta, contador de vistos, repetir y regenerar enlaces). Queda la Fase 5 (pulido y despliegue). Ver [`CONTEXT.md`](CONTEXT.md).
+> **Estado:** Fase 5a cerrada: pantalla «Despertando el servidor», script de borrado de salas y revisión de seguridad ([`docs/seguridad.md`](docs/seguridad.md)). Quedan accesibilidad, test e2e de navegador y despliegue (Fase 5b). Ver [`CONTEXT.md`](CONTEXT.md).
 
 ## Requisitos
 
@@ -22,6 +22,7 @@ docs/
   mockups/      Mockups de diseño (ver docs/mockups/MOCKUPS.md)
   openapi.json  Esquema OpenAPI exportado desde el backend
   componentes.md  Componentes reutilizables del frontend
+  seguridad.md    Revisión de seguridad
 .husky/         Hook de pre-commit (lint-staged)
 .vscode/        Extensiones, depuración, tareas y ajustes recomendados
 package.json    Herramientas comunes: Prettier, Husky y lint-staged
@@ -88,16 +89,16 @@ cd frontend && npm run dev
 
 ### Pantallas del frontend
 
-| Ruta           | Pantalla                                                                                                                                                                                                                                                                                                                                                                                                                  |
-| -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `/`            | Inicio: explicación en 3 pasos y «Crear sala» (o «Ahora mismo no se admiten más salas»)                                                                                                                                                                                                                                                                                                                                   |
-| `/crear`       | Formulario de la sala                                                                                                                                                                                                                                                                                                                                                                                                     |
-| `/creada`      | Enlaces de invitación y de gestión, justo después de crear. Si se recarga, vuelve al inicio: el enlace de gestión solo se muestra una vez                                                                                                                                                                                                                                                                                 |
-| `/s/<código>`  | Unirse con un nombre (o «Sala llena» / «Sala cerrada»)                                                                                                                                                                                                                                                                                                                                                                    |
-| `/p#<token>`   | Sala del participante, en tiempo real. Antes del sorteo: parejas, listas de deseos de todos (botón de regalo), «Mi lista de deseos» con su editor y «Salir de la sala». Después: «¡Ya se ha hecho el sorteo!» → ruleta de unos 15 s (se puede saltar; solo la primera vez y sin ella con «reducir movimiento») → resultado con la lista de deseos de su amigo invisible. Si se repite el sorteo, avisa y vuelve a empezar |
-| `/o#<token>`   | Panel del organizador, en tiempo real. Antes del sorteo: editar la sala, regla de pareja, parejas, enlace de invitación, aviso «No hay solución» y «Sortear». Después: contador «Resultados vistos» con «Más» (quién lo ha visto, sin asignaciones) y «Repetir sorteo». El menú ⋮ de cada persona permite regenerar su enlace (siempre) y expulsar (solo antes del sorteo)                                                |
-| `/salida`      | «Has salido de la sala», tras salir                                                                                                                                                                                                                                                                                                                                                                                       |
-| cualquier otra | «No encontrado»                                                                                                                                                                                                                                                                                                                                                                                                           |
+| Ruta           | Pantalla                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
+| -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `/`            | Inicio: explicación en 3 pasos y «Crear sala» (o «Ahora mismo no se admiten más salas»)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
+| `/crear`       | Formulario de la sala                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
+| `/creada`      | Enlaces de invitación y de gestión, justo después de crear. Si se recarga, vuelve al inicio: el enlace de gestión solo se muestra una vez                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
+| `/s/<código>`  | Unirse con un nombre (o «Sala llena» / «Sala cerrada»)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
+| `/p#<token>`   | Sala del participante, en tiempo real. Antes del sorteo: parejas, listas de deseos de todos (botón de regalo), «Mi lista de deseos» con su editor y «Salir de la sala». Después: «¡Ya se ha hecho el sorteo!» → ruleta de unos 15 s (solo resultados posibles, frenada progresiva y un clic por nombre; se puede saltar; solo la primera vez y sin ella con «reducir movimiento») → resultado con la lista de deseos de su amigo invisible. Tras el sorteo sigue pudiendo cambiar su lista y, con «Ver listas de deseos», consultar las de los demás. Si se repite el sorteo, avisa y vuelve a empezar |
+| `/o#<token>`   | Panel del organizador, en tiempo real. Antes del sorteo: editar la sala, regla de pareja, parejas, enlace de invitación, aviso «No hay solución» y «Sortear». Después: contador «Resultados vistos» con «Más» (quién lo ha visto, sin asignaciones) y «Repetir sorteo». El menú ⋮ de cada persona permite regenerar su enlace (siempre) y expulsar (solo antes del sorteo)                                                                                                                                                                                                                             |
+| `/salida`      | «Has salido de la sala», tras salir                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
+| cualquier otra | «No encontrado»                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
 
 El frontend está en `frontend/src`:
 
@@ -120,6 +121,14 @@ npm run test:e2e    # integración (necesita Docker: PostgreSQL 17 y VersityGW c
 cd frontend
 npm test            # componentes y pantallas (Testing Library), con la API y el socket simulados
 ```
+
+## Seguridad
+
+El resumen de cómo se cumplen los requisitos de seguridad (secreto, tokens, logs, validación, XSS, cabeceras, dependencias…) está en [`docs/seguridad.md`](docs/seguridad.md). En resumen: `helmet` en el API; CSP y otras cabeceras en el frontend (`dist/_headers`, que se genera al compilar con la URL del backend de `VITE_API_URL`); y 0 vulnerabilidades en las dependencias de producción.
+
+## Servidor dormido
+
+El backend gratuito de Render se duerme y tarda hasta un minuto en despertar. Si una petición tarda más de 2,5 s, el frontend muestra «Despertando el servidor» encima de la página (sin perder lo que se estaba escribiendo). Si no hay conexión, o el hosting responde 502/503/504 mientras arranca, espera a que `/health` conteste y reintenta. Si pasados 90 s no responde, muestra el error con «Reintentar». Los sockets se reconectan solos y recargan el estado.
 
 ## Calidad de código
 
@@ -186,7 +195,7 @@ Antes de depurar el backend hacen falta los servicios (tarea `servicios: docker 
 | GET    | `/api/me/assignment`                  | Personal | La asignación propia: la persona a la que regala, con su lista de deseos. 409 `NOT_DRAWN`.                                                        |
 | POST   | `/api/me/assignment/seen`             | Personal | `{ round }`: marca el resultado como visto (solo cuenta si es la ronda actual).                                                                   |
 
-Todas las modificaciones exigen que la sala esté abierta (409 `ROOM_CLOSED` después del sorteo). `/api/manage` incluye `draw`: ronda, viabilidad (para avisar «No hay solución» antes de sortear), contador de vistos y la lista de vistos con **solo nombre y estado**. `/api/me` incluye `draw` (ronda y si ya lo ha visto) y la lista de deseos de cada participante (el enlace, o el nombre, tipo y tamaño del archivo) y las parejas; la clave del archivo en el almacenamiento nunca sale del backend.
+Las modificaciones de la sala (datos, regla, parejas, salir y expulsar) exigen que esté abierta (409 `ROOM_CLOSED` después del sorteo). La lista de deseos propia se puede crear, cambiar y quitar también después del sorteo. `/api/manage` incluye `draw`: ronda, viabilidad (para avisar «No hay solución» antes de sortear), contador de vistos y la lista de vistos con **solo nombre y estado**. `/api/me` incluye `draw` (ronda y si ya lo ha visto) y la lista de deseos de cada participante (el enlace, o el nombre, tipo y tamaño del archivo) y las parejas; la clave del archivo en el almacenamiento nunca sale del backend.
 
 Un token ausente, mal formado o inválido devuelve siempre el mismo 404 `NOT_FOUND`, para no revelar si un enlace existió.
 
@@ -268,7 +277,16 @@ Se completa en la Fase 5. Esquema previsto:
 
 ## Borrado de salas
 
-La aplicación nunca borra salas. El único borrado es manual, por el administrador, con un script local sin endpoint público (llega en la Fase 5). El script elimina la sala y, en cascada, participantes, parejas, listas, tokens y sorteos, además de sus archivos en R2 (todo lo que hay bajo `rooms/<id de la sala>/`).
+La aplicación nunca borra salas. El único borrado es manual, por el administrador, con un script local sin endpoint público:
+
+```bash
+cd backend
+npm run rooms -- list                        # id, fecha, estado, participantes y nombre de cada sala
+npm run rooms -- delete <id de la sala>      # pide escribir el nombre de la sala para confirmar
+npm run rooms -- delete <id de la sala> --yes  # sin preguntar
+```
+
+El script usa `backend/.env`. Para producción, apunta `DATABASE_URL` y las `S3_*` a Neon y R2 (en el `.env` o en el entorno de la orden). Primero borra los archivos de la sala en el almacenamiento (todo lo que hay bajo `rooms/<id>/`) y después la sala, que arrastra en cascada participantes, parejas, listas, tokens y asignaciones. Si falla el borrado de archivos, la sala queda intacta y se puede repetir. **No se puede deshacer y no hay copias de seguridad.**
 
 ## Limitaciones conocidas
 

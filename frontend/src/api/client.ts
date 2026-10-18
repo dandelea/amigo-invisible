@@ -1,4 +1,5 @@
 import { API_URL } from '@/config';
+import { trackSlow, waitForServer } from './server-status';
 
 // Error de la API con el código estable del backend (`NOT_FOUND`,
 // `ROOM_FULL`…). Si no se pudo contactar con el servidor, el código es
@@ -30,6 +31,14 @@ interface RequestOptions {
   body?: unknown;
 }
 
+// Respuesta del proxy del hosting mientras el backend arranca (502/503/504
+// sin nuestro formato de error JSON). Un 503 nuestro, como
+// MAX_ROOMS_REACHED, sí es JSON y no cuenta.
+function isBootingResponse(res: Response): boolean {
+  const json = res.headers.get('content-type')?.includes('application/json');
+  return [502, 503, 504].includes(res.status) && !json;
+}
+
 export async function apiRequest<T>(
   path: string,
   { method = 'GET', token, body }: RequestOptions = {},
@@ -40,10 +49,8 @@ export async function apiRequest<T>(
   if (body !== undefined && !isForm) {
     headers['Content-Type'] = 'application/json';
   }
-
-  let res: Response;
-  try {
-    res = await fetch(`${API_URL}${path}`, {
+  const send = (): Promise<Response | null> =>
+    fetch(`${API_URL}${path}`, {
       method,
       headers,
       body: isForm
@@ -51,8 +58,23 @@ export async function apiRequest<T>(
         : body === undefined
           ? undefined
           : JSON.stringify(body),
-    });
-  } catch {
+    }).catch(() => null);
+
+  // Si tarda, se avisa de que el servidor se está despertando. Si no hay
+  // conexión o el hosting responde que está arrancando, se espera a que
+  // /health conteste y se reintenta una vez. En esos casos la petición no
+  // ha llegado a la app, así que reintentarla no duplica nada.
+  const untrack = trackSlow();
+  let res: Response | null;
+  try {
+    res = await send();
+    if (res === null || isBootingResponse(res)) {
+      res = (await waitForServer()) ? await send() : null;
+    }
+  } finally {
+    untrack();
+  }
+  if (res === null) {
     throw new ApiError(0, 'NETWORK', 'No se pudo conectar con el servidor');
   }
 

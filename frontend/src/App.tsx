@@ -1,5 +1,6 @@
 import { BrowserRouter, Route, Routes } from 'react-router';
 import { StatusScreen } from '@/components/status-screen';
+import { WakingOverlay } from '@/components/waking-overlay';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { CreateRoomPage } from '@/pages/create-room-page';
 import { HomePage } from '@/pages/home-page';
@@ -14,6 +15,7 @@ import { t } from '@/texts/es';
 export function AppRoutes() {
   return (
     <TooltipProvider>
+      <WakingOverlay />
       <Routes>
         <Route path="/" element={<HomePage />} />
         <Route path="/crear" element={<CreateRoomPage />} />

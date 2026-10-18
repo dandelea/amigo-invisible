@@ -10,7 +10,7 @@ import { type Db, InjectDb, type Tx } from '../db/db.module.js';
 import { participants, wishlists, type Participant } from '../db/schema.js';
 import { RealtimeGateway } from '../realtime/realtime.gateway.js';
 import type { DownloadUrlDto, WishlistDto } from '../rooms/dto.js';
-import { lockOpenRoom } from '../rooms/room-lock.js';
+import { lockRoom } from '../rooms/room-lock.js';
 import { toWishlistDto } from '../rooms/rooms.service.js';
 import { detectFileType, safeFileName } from '../storage/file-type.js';
 import {
@@ -21,7 +21,8 @@ import {
 type NewWishlist = Omit<typeof wishlists.$inferInsert, 'participantId'>;
 
 // Lista de deseos: un único elemento por participante (enlace o archivo).
-// Guardar reemplaza el anterior y borra su archivo. Solo antes del sorteo.
+// Guardar reemplaza el anterior y borra su archivo. Se puede crear, cambiar
+// y quitar también después del sorteo (decisión del usuario, Fase 5).
 @Injectable()
 export class WishlistsService {
   constructor(
@@ -70,7 +71,7 @@ export class WishlistsService {
 
   async remove(me: Participant): Promise<void> {
     const oldKey = await this.db.transaction(async (tx) => {
-      await lockOpenRoom(tx, me.roomId);
+      await lockRoom(tx, me.roomId);
       const [deleted] = await tx
         .delete(wishlists)
         .where(eq(wishlists.participantId, me.id))
@@ -114,7 +115,7 @@ export class WishlistsService {
     let oldKey: string | null;
     try {
       [saved, oldKey] = await this.db.transaction(async (tx) => {
-        await lockOpenRoom(tx, me.roomId);
+        await lockRoom(tx, me.roomId);
         const old = await this.currentFileKey(tx, me.id);
         const [row] = await tx
           .insert(wishlists)
