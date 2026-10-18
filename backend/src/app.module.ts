@@ -7,8 +7,14 @@ import { ENV, EnvModule } from './config/env.module.js';
 import { DbModule } from './db/db.module.js';
 import { HealthController } from './health/health.controller.js';
 import { RealtimeGateway } from './realtime/realtime.gateway.js';
+import { OrganizerController } from './organizer/organizer.controller.js';
+import { OrganizerService } from './organizer/organizer.service.js';
+import { MembershipService } from './rooms/membership.service.js';
 import { RoomsController } from './rooms/rooms.controller.js';
 import { RoomsService } from './rooms/rooms.service.js';
+import { StorageService } from './storage/storage.service.js';
+import { WishlistsController } from './wishlists/wishlists.controller.js';
+import { WishlistsService } from './wishlists/wishlists.service.js';
 
 @Module({
   imports: [
@@ -19,11 +25,20 @@ import { RoomsService } from './rooms/rooms.service.js';
     }),
     DbModule,
   ],
-  controllers: [HealthController, RoomsController],
+  controllers: [
+    HealthController,
+    RoomsController,
+    OrganizerController,
+    WishlistsController,
+  ],
   providers: [
     AuthService,
     RealtimeGateway,
     RoomsService,
+    MembershipService,
+    OrganizerService,
+    WishlistsService,
+    StorageService,
     { provide: APP_GUARD, useClass: HttpThrottlerGuard },
   ],
 })

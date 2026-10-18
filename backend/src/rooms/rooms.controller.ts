@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   HttpCode,
   Param,
@@ -12,6 +13,7 @@ import {
   ApiBody,
   ApiConflictResponse,
   ApiCreatedResponse,
+  ApiNoContentResponse,
   ApiNotFoundResponse,
   ApiOkResponse,
   ApiOperation,
@@ -41,6 +43,7 @@ import {
   OrganizerViewDto,
   ParticipantViewDto,
 } from './dto.js';
+import { MembershipService } from './membership.service.js';
 import { RoomsService } from './rooms.service.js';
 
 const errors = { type: ErrorResponseDto };
@@ -49,7 +52,10 @@ const errors = { type: ErrorResponseDto };
 @ApiTooManyRequestsResponse({ ...errors, description: 'TOO_MANY_REQUESTS' })
 @Controller()
 export class RoomsController {
-  constructor(private readonly rooms: RoomsService) {}
+  constructor(
+    private readonly rooms: RoomsService,
+    private readonly membership: MembershipService,
+  ) {}
 
   @Get('rooms/availability')
   @ApiOperation({
@@ -129,6 +135,22 @@ export class RoomsController {
     @CurrentParticipant() me: Participant,
   ): Promise<ParticipantViewDto> {
     return this.rooms.participantView(room, me);
+  }
+
+  @Delete('me')
+  @HttpCode(204)
+  @UseGuards(ParticipantGuard)
+  @ApiBearerAuth(TOKEN_AUTH)
+  @ApiOperation({
+    summary: 'Sale de la sala (solo antes del sorteo)',
+    description:
+      'Borra su pareja y su lista de deseos; su nombre queda libre y su enlace deja de funcionar.',
+  })
+  @ApiNoContentResponse()
+  @ApiNotFoundResponse({ ...errors, description: 'NOT_FOUND (token inválido)' })
+  @ApiConflictResponse({ ...errors, description: 'ROOM_CLOSED' })
+  leave(@CurrentParticipant() me: Participant): Promise<void> {
+    return this.membership.remove(me.roomId, me.id);
   }
 
   @Get('manage')

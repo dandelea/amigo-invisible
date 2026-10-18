@@ -4,7 +4,55 @@ Resumen para traspasos entre agentes. La fuente de verdad es [`Prompt_inicial_Am
 
 ## Fase actual
 
-**Fase 2 (base): terminada el 18 de octubre de 2026, pendiente de revisión del usuario.** Siguiente: **Fase 3, gestión** (parejas y regla de pareja, expulsar, salir de la sala, listas de deseos con enlace y archivo en R2, y editar los datos de la sala). Antes de codificar, presentar un plan breve y esperar confirmación. La pantalla «Despertando el servidor» queda para la Fase 5.
+**Fase 3a (backend de la gestión): terminada el 18 de octubre de 2026, pendiente de revisión del usuario.** Siguiente: **Fase 3b, frontend de la gestión**, con el plan de abajo.
+
+## Fase 3: plan confirmado
+
+- **3a, backend** (hecha; resumen abajo).
+- **3b, frontend** (pendiente):
+  - participante: parejas en bloque (línea y corazón), botón de regalo para ver deseos («Sin lista» si no hay), «Mi lista de deseos» con Cambiar y Quitar, editor Enlace / Archivo, «Salir de la sala» con confirmación (`SalirConfirmar`) y pantalla «Has salido de la sala. Puedes volver a entrar con el enlace de invitación mientras siga abierta»;
+  - organizador: interruptor de la regla de pareja (`OrganizadorRegla`), «Marcar pareja» (`MarcarPareja`) y «Deshacer pareja», menú ⋮ por persona con «Expulsar» y confirmación «¿Expulsar a Marta? Se borrarán su lista de deseos y su pareja, y su enlace dejará de funcionar», y «Editar» los datos de la sala (también desde «Sala creada»);
+  - componentes `IconButton`, `SegmentedControl`, `Switch`, `SelectableOption`, `ResponsiveDialog`, `ConfirmDialog`, `ActionSheetItem`, `PairGroup`, `WishlistCard` y `WishlistEditor`;
+  - al expulsar o salir, el servidor cierra el socket del participante (`io server disconnect`): el cliente debe recargar y mostrar «No encontrado».
+- **Pasan a la Fase 4** (confirmado por el usuario): «Regenerar enlace personal» en el menú ⋮ y el aviso «No hay solución» junto a «Sortear».
+
+## Fase 3a: resumen
+
+### Hecho
+
+- **Esquema** (migración `drizzle/0001_gestion.sql`):
+  - `pairs`, ordenada con `a < b`;
+  - `pair_members`, una fila por miembro con el participante como clave primaria, para que nadie pueda estar en dos parejas;
+  - `wishlists`, un elemento por participante, enlace o archivo, con un `CHECK` de forma.
+  - Todo con `ON DELETE CASCADE`.
+- **Almacenamiento** (`src/storage/`):
+  - `StorageService` sobre el SDK de S3: subir, borrar sin lanzar error y URL firmada de 5 minutos como adjunto con nombre UTF-8. En desarrollo y tests crea el bucket.
+  - `file-type.ts` detecta PDF, JPEG, PNG y WebP por sus primeros bytes y limpia el nombre.
+  - Las variables `S3_*` sustituyen a las `R2_*`.
+- **Endpoints**:
+  - `OrganizerController` (`/api/manage/room`, `pair-rule`, `pairs`, `participants/:id`);
+  - `DELETE /api/me` (salir);
+  - `WishlistsController` (`/api/me/wishlist/link|file`, `DELETE /api/me/wishlist`, `GET /api/wishlists/:id/file`).
+  - `lockOpenRoom` (`src/rooms/room-lock.ts`) bloquea la sala y exige que esté abierta en todas las modificaciones.
+  - `MembershipService` reúne expulsar y salir: borra en cascada, borra el archivo, cierra los sockets y avisa.
+- **Vistas**: `/api/me` con la lista de deseos de cada participante y las parejas; `/api/manage` con las parejas.
+- **Límites**: límite de subidas por IP (`RATE_LIMIT_UPLOAD_PER_HOUR`). 413 → `FILE_TOO_LARGE` con mensaje en español; 415 → `UNSUPPORTED_FILE_TYPE`.
+- **Desarrollo y tests**: VersityGW v1.9.0 en docker-compose (puerto 59000) y en Testcontainers; `resetDb` vacía también el bucket.
+- **Tests**: 64 unitarios y 107 de integración.
+  - Los nuevos cubren parejas (repetidas, de otra sala, simultáneas, garantía en la base de datos), regla, edición, expulsar y salir (pareja, lista y archivo borrados, enlace inválido, socket cerrado), todo bloqueado tras el sorteo, enlaces https, tipo real, 5 MB justos frente a 5 MB + 1 byte, reemplazo y borrado de archivos, URL firmada (funciona, alterada da 403, solo misma sala) y límite de subidas.
+- **Prueba real** con docker compose: pareja, subida con «ñ» en el nombre, descarga firmada idéntica y expulsión (el archivo desaparece). Ningún token en el log.
+
+### Decisiones
+
+- **MinIO no está disponible** (sin imágenes públicas en Docker Hub ni en quay.io): el usuario eligió **VersityGW**, probado antes con URLs firmadas y rechazo de firmas y credenciales incorrectas.
+- **`pair_members`**: el test de concurrencia de parejas pasaba incluso sin el bloqueo, porque cada transacción es demasiado corta para solaparse. En vez de depender del bloqueo, la garantía está en la base de datos; se comprobó quitando el bloqueo y la comprobación previa.
+- Bug de multer corregido: leía los nombres de archivo como latin1 (`defParamCharset: 'utf8'`).
+- La lista de deseos solo se puede cambiar antes del sorteo y se puede consultar siempre. Solo pueden descargar los participantes de la misma sala (el organizador no ve las listas en los mockups).
+- Expulsar y salir usan el mismo código (`MembershipService.remove`).
+
+### Pendiente
+
+- Fase 3b (frontend de la gestión).
 
 ## Fase 2b: resumen
 

@@ -1,15 +1,22 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Transform } from 'class-transformer';
 import {
+  ArrayMaxSize,
+  ArrayMinSize,
+  IsArray,
+  IsBoolean,
   IsNumber,
   IsOptional,
   IsString,
+  IsUrl,
+  IsUUID,
   Matches,
   Max,
   MaxLength,
   Min,
   MinLength,
   Validate,
+  ValidateIf,
   ValidatorConstraint,
   type ValidatorConstraintInterface,
 } from 'class-validator';
@@ -223,6 +230,55 @@ export class JoinRoomResponseDto {
   participantToken: string;
 }
 
+export class WishlistDto {
+  @ApiProperty({ type: String, enum: ['link', 'file'] })
+  kind: 'link' | 'file';
+
+  @ApiProperty({
+    type: String,
+    nullable: true,
+    example: 'https://ejemplo.com/mi-lista',
+    description: 'Solo si kind = link.',
+  })
+  url: string | null;
+
+  @ApiProperty({
+    type: String,
+    nullable: true,
+    example: 'lista-deseos.pdf',
+    description: 'Solo si kind = file. La descarga se pide aparte.',
+  })
+  fileName: string | null;
+
+  @ApiProperty({
+    type: String,
+    nullable: true,
+    enum: ['PDF', 'JPEG', 'PNG', 'WebP'],
+  })
+  fileType: string | null;
+
+  @ApiProperty({ type: Number, nullable: true, example: 1258291 })
+  fileSize: number | null;
+}
+
+export class ParticipantWithWishlistDto extends ParticipantDto {
+  @ApiProperty({ type: WishlistDto, nullable: true })
+  wishlist: WishlistDto | null;
+}
+
+export class PairDto {
+  @ApiProperty({ type: String, format: 'uuid' })
+  id: string;
+
+  @ApiProperty({
+    type: [String],
+    format: 'uuid',
+    minItems: 2,
+    maxItems: 2,
+  })
+  participantIds: string[];
+}
+
 export class ParticipantViewDto {
   @ApiProperty({ type: RoomDto })
   room: RoomDto;
@@ -230,8 +286,15 @@ export class ParticipantViewDto {
   @ApiProperty({ type: ParticipantDto })
   me: ParticipantDto;
 
-  @ApiProperty({ type: [ParticipantDto] })
-  participants: ParticipantDto[];
+  @ApiProperty({
+    type: [ParticipantWithWishlistDto],
+    description:
+      'Todos los participantes con su lista de deseos (visible para todos).',
+  })
+  participants: ParticipantWithWishlistDto[];
+
+  @ApiProperty({ type: [PairDto] })
+  pairs: PairDto[];
 
   @ApiProperty({ type: Number, example: MAX_PARTICIPANTS })
   maxParticipants: number;
@@ -250,6 +313,106 @@ export class OrganizerViewDto {
   @ApiProperty({ type: [ParticipantDto] })
   participants: ParticipantDto[];
 
+  @ApiProperty({ type: [PairDto] })
+  pairs: PairDto[];
+
   @ApiProperty({ type: Number, example: MAX_PARTICIPANTS })
   maxParticipants: number;
+}
+
+// Edición de los datos de la sala. Solo se cambian los campos enviados;
+// null en la fecha o el presupuesto los borra.
+export class UpdateRoomDto {
+  @ApiPropertyOptional({
+    type: String,
+    minLength: ROOM_NAME_MIN,
+    maxLength: ROOM_NAME_MAX,
+  })
+  @ValidateIf((o: UpdateRoomDto) => o.name !== undefined)
+  @Transform(clean)
+  @IsString({ message: 'El nombre de la sala es obligatorio' })
+  @MinLength(ROOM_NAME_MIN, {
+    message: `El nombre de la sala debe tener al menos ${ROOM_NAME_MIN} caracteres`,
+  })
+  @MaxLength(ROOM_NAME_MAX, {
+    message: `El nombre de la sala puede tener como mucho ${ROOM_NAME_MAX} caracteres`,
+  })
+  @Matches(ROOM_NAME_PATTERN, {
+    message: 'El nombre de la sala tiene caracteres no permitidos',
+  })
+  name?: string;
+
+  @ApiPropertyOptional({ type: String, format: 'date', nullable: true })
+  @IsOptional()
+  @Validate(GiftDateConstraint)
+  giftDate?: string | null;
+
+  @ApiPropertyOptional({
+    type: Number,
+    minimum: 1,
+    maximum: 1000,
+    nullable: true,
+  })
+  @IsOptional()
+  @IsNumber(
+    { maxDecimalPlaces: 2, allowNaN: false, allowInfinity: false },
+    { message: 'El presupuesto debe ser un importe con hasta 2 decimales' },
+  )
+  @Min(1, { message: 'El presupuesto mínimo es 1 €' })
+  @Max(1000, { message: 'El presupuesto máximo es 1000 €' })
+  budget?: number | null;
+}
+
+export class SetPairRuleDto {
+  @ApiProperty({ type: Boolean, example: true })
+  @IsBoolean({ message: 'Indica si la regla está activa (true o false)' })
+  enabled: boolean;
+}
+
+export class CreatePairDto {
+  @ApiProperty({
+    type: [String],
+    format: 'uuid',
+    minItems: 2,
+    maxItems: 2,
+    description: 'Los dos participantes, sin pareja, de la misma sala.',
+  })
+  @IsArray({ message: 'Indica las dos personas de la pareja' })
+  @ArrayMinSize(2, { message: 'Una pareja son dos personas' })
+  @ArrayMaxSize(2, { message: 'Una pareja son dos personas' })
+  @IsUUID('all', { each: true, message: 'Participante no válido' })
+  participantIds: string[];
+}
+
+export class WishlistLinkDto {
+  @ApiProperty({
+    type: String,
+    maxLength: 2000,
+    example: 'https://ejemplo.com/mi-lista',
+    description: 'Solo https.',
+  })
+  @IsString({ message: 'Escribe un enlace' })
+  @MaxLength(2000, { message: 'El enlace es demasiado largo' })
+  @IsUrl(
+    {
+      protocols: ['https'],
+      require_protocol: true,
+      require_tld: true,
+      disallow_auth: true,
+    },
+    { message: 'El enlace debe empezar por https://' },
+  )
+  url: string;
+}
+
+export class DownloadUrlDto {
+  @ApiProperty({
+    type: String,
+    description:
+      'URL firmada y temporal del almacenamiento. Descarga el archivo como adjunto.',
+  })
+  url: string;
+
+  @ApiProperty({ type: Number, example: 300 })
+  expiresInSeconds: number;
 }

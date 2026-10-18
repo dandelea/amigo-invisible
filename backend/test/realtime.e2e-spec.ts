@@ -2,9 +2,11 @@ import type { NestExpressApplication } from '@nestjs/platform-express';
 import type { Socket } from 'socket.io-client';
 import { ROOM_CHANGED } from '../src/realtime/realtime.gateway.js';
 import {
+  auth,
   connectSocket,
   createRoom,
   createTestApp,
+  http,
   join,
   portOf,
   resetDb,
@@ -101,6 +103,52 @@ describe('Tiempo real (e2e)', () => {
     await settle();
 
     expect(events).toEqual([]);
+  });
+
+  it('al expulsar a alguien se cierra su socket y los demás reciben el aviso', async () => {
+    const { inviteCode, manageToken } = await createRoom(app);
+    const ana = await join(app, inviteCode, 'Ana');
+    const luis = await join(app, inviteCode, 'Luis');
+
+    const anaSocket = open({
+      role: 'participant',
+      token: ana.participantToken,
+    });
+    const luisSocket = open({
+      role: 'participant',
+      token: luis.participantToken,
+    });
+    await Promise.all([connected(anaSocket), connected(luisSocket)]);
+    const luisEvents = record(luisSocket);
+    const anaDisconnected = new Promise<string>((resolve) =>
+      anaSocket.once('disconnect', (reason) => resolve(reason)),
+    );
+
+    await http(app)
+      .delete(`/api/manage/participants/${ana.participant.id}`)
+      .set(auth(manageToken))
+      .expect(204);
+
+    expect(await anaDisconnected).toBe('io server disconnect');
+    await settle();
+    expect(luisEvents).toEqual([[]]);
+    expect(luisSocket.connected).toBe(true);
+  });
+
+  it('marcar una pareja avisa a la sala', async () => {
+    const { inviteCode, manageToken } = await createRoom(app);
+    const ana = await join(app, inviteCode, 'Ana');
+    const luis = await join(app, inviteCode, 'Luis');
+    const socket = open({ role: 'participant', token: ana.participantToken });
+    await connected(socket);
+    const events = record(socket);
+    await http(app)
+      .post('/api/manage/pairs')
+      .set(auth(manageToken))
+      .send({ participantIds: [ana.participant.id, luis.participant.id] })
+      .expect(201);
+    await settle();
+    expect(events).toEqual([[]]);
   });
 
   it('un participante que ya no existe no puede conectarse', async () => {

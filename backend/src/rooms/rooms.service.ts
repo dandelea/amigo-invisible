@@ -4,10 +4,14 @@ import type { Env } from '../config/env.js';
 import { InjectEnv } from '../config/env.module.js';
 import { type Db, InjectDb } from '../db/db.module.js';
 import {
+  pairs,
   participants,
   rooms,
+  wishlists,
+  type Pair,
   type Participant,
   type Room,
+  type Wishlist,
 } from '../db/schema.js';
 import {
   isUniqueViolation,
@@ -32,9 +36,11 @@ import type {
   InvitationDto,
   JoinRoomResponseDto,
   OrganizerViewDto,
+  PairDto,
   ParticipantDto,
   ParticipantViewDto,
   RoomDto,
+  WishlistDto,
 } from './dto.js';
 
 // Clave del bloqueo consultivo que serializa la creación de salas, para que
@@ -154,21 +160,51 @@ export class RoomsService {
     room: Room,
     me: Participant,
   ): Promise<ParticipantViewDto> {
+    const [list, wishlistRows, pairRows] = await Promise.all([
+      this.participantsOf(room.id),
+      this.db
+        .select({ wishlist: wishlists })
+        .from(wishlists)
+        .innerJoin(participants, eq(participants.id, wishlists.participantId))
+        .where(eq(participants.roomId, room.id)),
+      this.pairsOf(room.id),
+    ]);
+    const byParticipant = new Map(
+      wishlistRows.map(({ wishlist }) => [wishlist.participantId, wishlist]),
+    );
     return {
       room: toRoomDto(room),
       me: toParticipantDto(me),
-      participants: (await this.participantsOf(room.id)).map(toParticipantDto),
+      participants: list.map((p) => ({
+        id: p.id,
+        name: p.name,
+        wishlist: toWishlistDto(byParticipant.get(p.id)),
+      })),
+      pairs: pairRows.map(toPairDto),
       maxParticipants: MAX_PARTICIPANTS,
     };
   }
 
   async organizerView(room: Room): Promise<OrganizerViewDto> {
+    const [list, pairRows] = await Promise.all([
+      this.participantsOf(room.id),
+      this.pairsOf(room.id),
+    ]);
     return {
       room: toRoomDto(room),
       inviteCode: room.inviteCode,
-      participants: (await this.participantsOf(room.id)).map(toParticipantDto),
+      participants: list.map(toParticipantDto),
+      pairs: pairRows.map(toPairDto),
       maxParticipants: MAX_PARTICIPANTS,
     };
+  }
+
+  private pairsOf(roomId: string): Promise<Pair[]> {
+    return this.db
+      .select()
+      .from(pairs)
+      .where(eq(pairs.roomId, roomId))
+      .orderBy(asc(pairs.createdAt), asc(pairs.id));
   }
 
   private async roomByInviteCode(code: string): Promise<Room> {
@@ -205,4 +241,20 @@ export function toRoomDto(room: Room): RoomDto {
 
 function toParticipantDto(p: Participant): ParticipantDto {
   return { id: p.id, name: p.name };
+}
+
+export function toPairDto(p: Pair): PairDto {
+  return { id: p.id, participantIds: [p.participantAId, p.participantBId] };
+}
+
+// La clave del archivo en el almacenamiento nunca sale del backend.
+export function toWishlistDto(w: Wishlist | undefined): WishlistDto | null {
+  if (!w) return null;
+  return {
+    kind: w.kind,
+    url: w.kind === 'link' ? w.url : null,
+    fileName: w.kind === 'file' ? w.fileName : null,
+    fileType: w.kind === 'file' ? w.fileType : null,
+    fileSize: w.kind === 'file' ? w.fileSize : null,
+  };
 }

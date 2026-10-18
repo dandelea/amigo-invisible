@@ -1,6 +1,12 @@
 import { validateEnv } from './env.js';
 
-const base = { DATABASE_URL: 'postgres://u:p@localhost:5432/db' };
+const base = {
+  DATABASE_URL: 'postgres://u:p@localhost:5432/db',
+  S3_ENDPOINT: 'http://localhost:59000',
+  S3_ACCESS_KEY_ID: 'clave',
+  S3_SECRET_ACCESS_KEY: 'secreto',
+  S3_BUCKET: 'amigo',
+};
 
 describe('validateEnv', () => {
   it('aplica los valores por defecto', () => {
@@ -14,13 +20,19 @@ describe('validateEnv', () => {
     expect(validateEnv({ ...base, MAX_ROOMS: '25' }).MAX_ROOMS).toBe(25);
   });
 
-  it('exige DATABASE_URL', () => {
-    expect(() => validateEnv({})).toThrow(/DATABASE_URL/);
+  it('exige la base de datos y el almacenamiento', () => {
+    expect(() => validateEnv({})).toThrow(
+      /DATABASE_URL, S3_ENDPOINT, S3_ACCESS_KEY_ID, S3_SECRET_ACCESS_KEY, S3_BUCKET/,
+    );
   });
 
   it('rechaza valores inválidos sin mostrar su contenido', () => {
     expect(() =>
-      validateEnv({ MAX_ROOMS: '0', DATABASE_URL: 'contraseña-secreta' }),
+      validateEnv({
+        ...base,
+        MAX_ROOMS: '0',
+        DATABASE_URL: 'contraseña-secreta',
+      }),
     ).toThrow(/^Variables de entorno inválidas: DATABASE_URL, MAX_ROOMS$/);
   });
 });

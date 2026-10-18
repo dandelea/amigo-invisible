@@ -6,7 +6,7 @@ import type { Env } from '../config/env.js';
 // límites más estrictos que solo se aplican a las rutas marcadas con
 // @RateLimit(). Los valores salen de las variables de entorno.
 
-type NamedLimit = 'createRoom' | 'join';
+type NamedLimit = 'createRoom' | 'join' | 'upload';
 
 const RATE_LIMIT_KEY = 'rateLimit';
 
@@ -37,6 +37,12 @@ export function rateLimitOptions(env: Env): ThrottlerModuleOptions {
         ttl: 60_000,
         limit: env.RATE_LIMIT_JOIN_PER_MINUTE,
         skipIf: (ctx) => !isMarked(ctx, 'join'),
+      },
+      {
+        name: 'upload',
+        ttl: 3_600_000,
+        limit: env.RATE_LIMIT_UPLOAD_PER_HOUR,
+        skipIf: (ctx) => !isMarked(ctx, 'upload'),
       },
     ],
   };

@@ -2,6 +2,11 @@ import type { NestExpressApplication } from '@nestjs/platform-express';
 import { Test } from '@nestjs/testing';
 import { sql } from 'drizzle-orm';
 import { io, type Socket } from 'socket.io-client';
+import {
+  DeleteObjectCommand,
+  ListObjectsV2Command,
+  S3Client,
+} from '@aws-sdk/client-s3';
 import request from 'supertest';
 import { AppModule } from '../src/app.module.js';
 import { type Db, DB } from '../src/db/db.module.js';
@@ -14,6 +19,7 @@ const TEST_ENV = {
   RATE_LIMIT_PER_MINUTE: '100000',
   RATE_LIMIT_CREATE_ROOM_PER_HOUR: '100000',
   RATE_LIMIT_JOIN_PER_MINUTE: '100000',
+  RATE_LIMIT_UPLOAD_PER_HOUR: '100000',
 };
 
 export async function createTestApp(
@@ -37,8 +43,15 @@ export async function createTestApp(
 export const portOf = (app: NestExpressApplication): number =>
   (app.getHttpServer().address() as { port: number }).port;
 
+// Vacía la base de datos y el almacenamiento entre tests.
 export async function resetDb(app: NestExpressApplication): Promise<void> {
   await app.get<Db>(DB).execute(sql`truncate table rooms cascade`);
+  const s3 = testS3();
+  for (const key of await storedKeys()) {
+    await s3.send(
+      new DeleteObjectCommand({ Bucket: process.env.S3_BUCKET, Key: key }),
+    );
+  }
 }
 
 export const http = (app: NestExpressApplication) =>
@@ -83,3 +96,35 @@ export function connectSocket(
     forceNew: true,
   });
 }
+
+export const auth = (token: string) => ({ Authorization: `Bearer ${token}` });
+
+// Cliente S3 de los tests, para comprobar qué hay en el almacenamiento.
+export function testS3(): S3Client {
+  return new S3Client({
+    endpoint: process.env.S3_ENDPOINT,
+    region: process.env.S3_REGION,
+    forcePathStyle: true,
+    credentials: {
+      accessKeyId: process.env.S3_ACCESS_KEY_ID!,
+      secretAccessKey: process.env.S3_SECRET_ACCESS_KEY!,
+    },
+  });
+}
+
+export async function storedKeys(prefix = 'rooms/'): Promise<string[]> {
+  const res = await testS3().send(
+    new ListObjectsV2Command({ Bucket: process.env.S3_BUCKET, Prefix: prefix }),
+  );
+  return (res.Contents ?? []).map((o) => o.Key!).sort();
+}
+
+// Archivos mínimos con la firma (primeros bytes) de cada tipo.
+export const files = {
+  png: Buffer.concat([
+    Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]),
+    Buffer.from('datos de imagen'),
+  ]),
+  pdf: Buffer.from('%PDF-1.7\n% lista de deseos\n'),
+  fakePng: Buffer.from('esto no es una imagen'),
+};

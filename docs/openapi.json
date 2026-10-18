@@ -301,6 +301,55 @@
         "tags": [
           "salas"
         ]
+      },
+      "delete": {
+        "description": "Borra su pareja y su lista de deseos; su nombre queda libre y su enlace deja de funcionar.",
+        "operationId": "RoomsController_leave",
+        "parameters": [],
+        "responses": {
+          "204": {
+            "description": ""
+          },
+          "404": {
+            "description": "NOT_FOUND (token inválido)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "ROOM_CLOSED",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "TOO_MANY_REQUESTS",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "token": []
+          }
+        ],
+        "summary": "Sale de la sala (solo antes del sorteo)",
+        "tags": [
+          "salas"
+        ]
       }
     },
     "/api/manage": {
@@ -348,6 +397,649 @@
         "summary": "Estado de la sala para el organizador",
         "tags": [
           "salas"
+        ]
+      }
+    },
+    "/api/manage/room": {
+      "patch": {
+        "description": "Solo cambia los campos enviados; null en giftDate o budget los borra.",
+        "operationId": "OrganizerController_updateRoom",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateRoomDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RoomDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "VALIDATION_ERROR",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "NOT_FOUND",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "ROOM_CLOSED: la sala ya se ha sorteado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "TOO_MANY_REQUESTS",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "token": []
+          }
+        ],
+        "summary": "Edita los datos de la sala",
+        "tags": [
+          "organizador"
+        ]
+      }
+    },
+    "/api/manage/pair-rule": {
+      "put": {
+        "operationId": "OrganizerController_setPairRule",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SetPairRuleDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RoomDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "VALIDATION_ERROR",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "NOT_FOUND",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "ROOM_CLOSED: la sala ya se ha sorteado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "TOO_MANY_REQUESTS",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "token": []
+          }
+        ],
+        "summary": "Activa o desactiva la regla de pareja",
+        "tags": [
+          "organizador"
+        ]
+      }
+    },
+    "/api/manage/pairs": {
+      "post": {
+        "operationId": "OrganizerController_createPair",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreatePairDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PairDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "VALIDATION_ERROR",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "NOT_FOUND",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "ALREADY_PAIRED o ROOM_CLOSED",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "TOO_MANY_REQUESTS",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "token": []
+          }
+        ],
+        "summary": "Marca una pareja entre dos personas sin pareja",
+        "tags": [
+          "organizador"
+        ]
+      }
+    },
+    "/api/manage/pairs/{pairId}": {
+      "delete": {
+        "operationId": "OrganizerController_deletePair",
+        "parameters": [
+          {
+            "name": "pairId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": ""
+          },
+          "404": {
+            "description": "NOT_FOUND",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "ROOM_CLOSED: la sala ya se ha sorteado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "TOO_MANY_REQUESTS",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "token": []
+          }
+        ],
+        "summary": "Deshace una pareja",
+        "tags": [
+          "organizador"
+        ]
+      }
+    },
+    "/api/manage/participants/{participantId}": {
+      "delete": {
+        "description": "Borra su pareja, su lista de deseos y su archivo; su enlace deja de funcionar y sus sockets se cierran.",
+        "operationId": "OrganizerController_expel",
+        "parameters": [
+          {
+            "name": "participantId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": ""
+          },
+          "404": {
+            "description": "NOT_FOUND",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "ROOM_CLOSED: la sala ya se ha sorteado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "TOO_MANY_REQUESTS",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "token": []
+          }
+        ],
+        "summary": "Expulsa a un participante (solo antes del sorteo)",
+        "tags": [
+          "organizador"
+        ]
+      }
+    },
+    "/api/me/wishlist/link": {
+      "put": {
+        "description": "Reemplaza el elemento anterior (y borra su archivo, si lo había).",
+        "operationId": "WishlistsController_setLink",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WishlistLinkDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WishlistDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "VALIDATION_ERROR",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "NOT_FOUND",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "ROOM_CLOSED",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "TOO_MANY_REQUESTS",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "token": []
+          }
+        ],
+        "summary": "Guarda un enlace como lista de deseos",
+        "tags": [
+          "lista de deseos"
+        ]
+      }
+    },
+    "/api/me/wishlist/file": {
+      "put": {
+        "description": "PDF, JPEG, PNG o WebP de hasta 5 MB, según su contenido real. Reemplaza el elemento anterior.",
+        "operationId": "WishlistsController_setFile",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "file"
+                ],
+                "properties": {
+                  "file": {
+                    "type": "string",
+                    "format": "binary"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WishlistDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "FILE_REQUIRED",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "NOT_FOUND",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "ROOM_CLOSED",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "FILE_TOO_LARGE",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "UNSUPPORTED_FILE_TYPE",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "TOO_MANY_REQUESTS",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "token": []
+          }
+        ],
+        "summary": "Sube un archivo como lista de deseos",
+        "tags": [
+          "lista de deseos"
+        ]
+      }
+    },
+    "/api/me/wishlist": {
+      "delete": {
+        "operationId": "WishlistsController_remove",
+        "parameters": [],
+        "responses": {
+          "204": {
+            "description": ""
+          },
+          "404": {
+            "description": "NOT_FOUND",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "ROOM_CLOSED",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "TOO_MANY_REQUESTS",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "token": []
+          }
+        ],
+        "summary": "Quita la lista de deseos",
+        "tags": [
+          "lista de deseos"
+        ]
+      }
+    },
+    "/api/wishlists/{participantId}/file": {
+      "get": {
+        "description": "Devuelve una URL firmada de 5 minutos. Solo para participantes de la misma sala.",
+        "operationId": "WishlistsController_downloadUrl",
+        "parameters": [
+          {
+            "name": "participantId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DownloadUrlDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "NOT_FOUND",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "TOO_MANY_REQUESTS",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "token": []
+          }
+        ],
+        "summary": "URL de descarga del archivo de deseos de alguien de la sala",
+        "tags": [
+          "lista de deseos"
         ]
       }
     }
@@ -601,6 +1293,101 @@
           "participantToken"
         ]
       },
+      "WishlistDto": {
+        "type": "object",
+        "properties": {
+          "kind": {
+            "type": "string",
+            "enum": [
+              "link",
+              "file"
+            ]
+          },
+          "url": {
+            "type": "string",
+            "nullable": true,
+            "example": "https://ejemplo.com/mi-lista",
+            "description": "Solo si kind = link."
+          },
+          "fileName": {
+            "type": "string",
+            "nullable": true,
+            "example": "lista-deseos.pdf",
+            "description": "Solo si kind = file. La descarga se pide aparte."
+          },
+          "fileType": {
+            "type": "string",
+            "nullable": true,
+            "enum": [
+              "PDF",
+              "JPEG",
+              "PNG",
+              "WebP"
+            ]
+          },
+          "fileSize": {
+            "type": "number",
+            "nullable": true,
+            "example": 1258291
+          }
+        },
+        "required": [
+          "kind",
+          "url",
+          "fileName",
+          "fileType",
+          "fileSize"
+        ]
+      },
+      "ParticipantWithWishlistDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string",
+            "example": "Ana"
+          },
+          "wishlist": {
+            "nullable": true,
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/WishlistDto"
+              }
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "wishlist"
+        ]
+      },
+      "PairDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "participantIds": {
+            "minItems": 2,
+            "maxItems": 2,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        },
+        "required": [
+          "id",
+          "participantIds"
+        ]
+      },
       "ParticipantViewDto": {
         "type": "object",
         "properties": {
@@ -611,9 +1398,16 @@
             "$ref": "#/components/schemas/ParticipantDto"
           },
           "participants": {
+            "description": "Todos los participantes con su lista de deseos (visible para todos).",
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/ParticipantDto"
+              "$ref": "#/components/schemas/ParticipantWithWishlistDto"
+            }
+          },
+          "pairs": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PairDto"
             }
           },
           "maxParticipants": {
@@ -625,6 +1419,7 @@
           "room",
           "me",
           "participants",
+          "pairs",
           "maxParticipants"
         ]
       },
@@ -644,6 +1439,12 @@
               "$ref": "#/components/schemas/ParticipantDto"
             }
           },
+          "pairs": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PairDto"
+            }
+          },
           "maxParticipants": {
             "type": "number",
             "example": 30
@@ -653,7 +1454,90 @@
           "room",
           "inviteCode",
           "participants",
+          "pairs",
           "maxParticipants"
+        ]
+      },
+      "UpdateRoomDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 60
+          },
+          "giftDate": {
+            "type": "string",
+            "format": "date",
+            "nullable": true
+          },
+          "budget": {
+            "type": "number",
+            "minimum": 1,
+            "maximum": 1000,
+            "nullable": true
+          }
+        }
+      },
+      "SetPairRuleDto": {
+        "type": "object",
+        "properties": {
+          "enabled": {
+            "type": "boolean",
+            "example": true
+          }
+        },
+        "required": [
+          "enabled"
+        ]
+      },
+      "CreatePairDto": {
+        "type": "object",
+        "properties": {
+          "participantIds": {
+            "minItems": 2,
+            "maxItems": 2,
+            "description": "Los dos participantes, sin pareja, de la misma sala.",
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        },
+        "required": [
+          "participantIds"
+        ]
+      },
+      "WishlistLinkDto": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string",
+            "maxLength": 2000,
+            "example": "https://ejemplo.com/mi-lista",
+            "description": "Solo https."
+          }
+        },
+        "required": [
+          "url"
+        ]
+      },
+      "DownloadUrlDto": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string",
+            "description": "URL firmada y temporal del almacenamiento. Descarga el archivo como adjunto."
+          },
+          "expiresInSeconds": {
+            "type": "number",
+            "example": 300
+          }
+        },
+        "required": [
+          "url",
+          "expiresInSeconds"
         ]
       }
     }

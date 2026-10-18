@@ -1,7 +1,6 @@
 import { z } from 'zod';
 
-// Variables de entorno. Las de R2 se usan a partir de la Fase 3 y son
-// opcionales hasta entonces.
+// Variables de entorno, validadas al arrancar.
 const envSchema = z.object({
   NODE_ENV: z
     .enum(['development', 'test', 'production'])
@@ -23,11 +22,15 @@ const envSchema = z.object({
     .positive()
     .default(10),
   RATE_LIMIT_JOIN_PER_MINUTE: z.coerce.number().int().positive().default(30),
-  // Fase 3: almacenamiento de archivos (Cloudflare R2).
-  R2_ACCOUNT_ID: z.string().optional(),
-  R2_ACCESS_KEY_ID: z.string().optional(),
-  R2_SECRET_ACCESS_KEY: z.string().optional(),
-  R2_BUCKET: z.string().optional(),
+  RATE_LIMIT_UPLOAD_PER_HOUR: z.coerce.number().int().positive().default(30),
+  // Almacenamiento de archivos compatible con S3: Cloudflare R2 en
+  // producción (https://<cuenta>.r2.cloudflarestorage.com, región «auto»)
+  // y VersityGW en desarrollo y tests.
+  S3_ENDPOINT: z.string().url(),
+  S3_REGION: z.string().min(1).default('auto'),
+  S3_ACCESS_KEY_ID: z.string().min(1),
+  S3_SECRET_ACCESS_KEY: z.string().min(1),
+  S3_BUCKET: z.string().min(1),
 });
 
 export type Env = z.infer<typeof envSchema>;

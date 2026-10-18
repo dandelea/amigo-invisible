@@ -1,7 +1,9 @@
 import {
+  BadRequestException,
   ConflictException,
   NotFoundException,
   ServiceUnavailableException,
+  UnsupportedMediaTypeException,
 } from '@nestjs/common';
 
 // Errores de negocio con código estable. El frontend elige el texto a
@@ -30,6 +32,30 @@ export const nameTaken = () =>
     message: 'Ya hay alguien con ese nombre en la sala',
   });
 
+export const alreadyPaired = () =>
+  new ConflictException({
+    error: 'ALREADY_PAIRED',
+    message: 'Alguna de esas personas ya tiene pareja',
+  });
+
+export const samePerson = () =>
+  new BadRequestException({
+    error: 'VALIDATION_ERROR',
+    message: 'Elige a dos personas distintas',
+  });
+
+export const fileRequired = () =>
+  new BadRequestException({
+    error: 'FILE_REQUIRED',
+    message: 'Falta el archivo',
+  });
+
+export const unsupportedFileType = () =>
+  new UnsupportedMediaTypeException({
+    error: 'UNSUPPORTED_FILE_TYPE',
+    message: 'Solo se admiten PDF, JPEG, PNG o WebP',
+  });
+
 // Violación de una restricción única de PostgreSQL. Drizzle envuelve el
 // error del driver, así que se mira también su causa.
 export function isUniqueViolation(error: unknown, constraint: string): boolean {
@@ -42,6 +68,17 @@ export function isUniqueViolation(error: unknown, constraint: string): boolean {
     if (pgError.code === '23505' && pgError.constraint === constraint) {
       return true;
     }
+    e = pgError.cause;
+  }
+  return false;
+}
+
+// Violación de una clave foránea (p. ej. el participante se borró mientras
+// se guardaba su lista).
+export function isForeignKeyViolation(error: unknown): boolean {
+  for (let e = error; e && typeof e === 'object';) {
+    const pgError = e as { code?: string; cause?: unknown };
+    if (pgError.code === '23503') return true;
     e = pgError.cause;
   }
   return false;

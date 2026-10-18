@@ -9,8 +9,15 @@ import { AppModule } from './app.module.js';
 import { buildOpenApi, configureApp } from './setup.js';
 
 // La exportación no consulta la base de datos (el pool no conecta hasta la
-// primera consulta), pero la configuración exige una URL.
+// primera consulta) ni el almacenamiento, pero la configuración exige sus
+// variables.
 process.env.DATABASE_URL ??= 'postgres://openapi@localhost:5432/openapi';
+process.env.S3_ENDPOINT ??= 'http://localhost:59000';
+process.env.S3_ACCESS_KEY_ID ??= 'openapi';
+process.env.S3_SECRET_ACCESS_KEY ??= 'openapi';
+process.env.S3_BUCKET ??= 'openapi';
+// Sin entorno de producción no intenta crear el bucket.
+process.env.NODE_ENV ??= 'production';
 
 const app = await NestFactory.create<NestExpressApplication>(AppModule, {
   logger: false,

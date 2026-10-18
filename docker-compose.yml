@@ -1,4 +1,4 @@
-# PostgreSQL solo para desarrollo local. En producción se usa Neon.
+# Servicios solo para desarrollo local. En producción: Neon y Cloudflare R2.
 # Arrancar: docker compose up -d (puerto 54329, para no chocar con un
 # PostgreSQL instalado en el sistema)
 services:
@@ -13,5 +13,19 @@ services:
     volumes:
       - db-data:/var/lib/postgresql/data
 
+  # Servidor S3 local (VersityGW) en lugar de Cloudflare R2. Puerto 59000.
+  s3:
+    image: versity/versitygw:v1.9.0
+    environment:
+      ROOT_ACCESS_KEY: amigo
+      ROOT_SECRET_KEY: amigo-secreto
+    entrypoint: ["sh", "-c"]
+    command: ["mkdir -p /data && versitygw --port :7070 posix /data"]
+    ports:
+      - "127.0.0.1:59000:7070"
+    volumes:
+      - s3-data:/data
+
 volumes:
   db-data:
+  s3-data:

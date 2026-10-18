@@ -48,6 +48,12 @@ export class RealtimeGateway implements OnGatewayInit {
     this.server.to(roomChannel(roomId)).emit(ROOM_CHANGED);
   }
 
+  // Cierra los sockets de un participante expulsado o que ha salido. El
+  // cliente, al desconectarse por el servidor, recarga y ve «No encontrado».
+  disconnectParticipant(participantId: string): void {
+    this.server.in(participantChannel(participantId)).disconnectSockets(true);
+  }
+
   private async authenticate(socket: Socket): Promise<void> {
     const { role, token } = (socket.handshake.auth ?? {}) as Record<
       string,

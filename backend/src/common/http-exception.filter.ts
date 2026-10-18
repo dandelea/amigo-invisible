@@ -15,7 +15,8 @@ const DEFAULT_CODES: Record<number, string> = {
   403: 'FORBIDDEN',
   404: 'NOT_FOUND',
   409: 'CONFLICT',
-  413: 'PAYLOAD_TOO_LARGE',
+  413: 'FILE_TOO_LARGE',
+  415: 'UNSUPPORTED_FILE_TYPE',
   429: 'TOO_MANY_REQUESTS',
   500: 'INTERNAL_ERROR',
 };
@@ -64,5 +65,6 @@ export function toErrorBody(exception: unknown): ErrorResponseDto {
     if (typeof r.message === 'string') message = r.message;
     if (Array.isArray(r.message)) message = r.message.join('; ');
   }
+  if (statusCode === 413) message = 'El archivo pesa más de 5 MB';
   return { statusCode, error, message };
 }

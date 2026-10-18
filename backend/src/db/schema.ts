@@ -1,5 +1,7 @@
+import { sql } from 'drizzle-orm';
 import {
   boolean,
+  check,
   date,
   integer,
   pgEnum,
@@ -12,7 +14,7 @@ import {
 
 // Esquema de base de datos. Todo cuelga de la sala con ON DELETE CASCADE,
 // para que el script de borrado manual elimine una sala con todo lo suyo.
-// Parejas, listas de deseos y asignaciones llegan en las fases 3 y 4.
+// Las asignaciones del sorteo llegan en la Fase 4.
 
 export const roomStatus = pgEnum('room_status', ['open', 'drawn']);
 
@@ -61,5 +63,73 @@ export const participants = pgTable(
   (t) => [unique('participants_room_name_key').on(t.roomId, t.nameKey)],
 );
 
+// Pareja de dos participantes que no pueden tocarse con la regla activa.
+// Se guarda ordenada (a < b). Al borrar a cualquiera de los dos se borra la
+// pareja (y, en cascada, sus filas de pair_members).
+export const pairs = pgTable(
+  'pairs',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    roomId: uuid('room_id')
+      .notNull()
+      .references(() => rooms.id, { onDelete: 'cascade' }),
+    participantAId: uuid('participant_a_id')
+      .notNull()
+      .references(() => participants.id, { onDelete: 'cascade' }),
+    participantBId: uuid('participant_b_id')
+      .notNull()
+      .references(() => participants.id, { onDelete: 'cascade' }),
+    createdAt: timestamp('created_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [
+    check('pairs_ordered', sql`${t.participantAId} < ${t.participantBId}`),
+  ],
+);
+
+// Una fila por miembro de cada pareja. La clave primaria es el participante,
+// así que la base de datos impide que alguien esté en dos parejas aunque
+// lleguen peticiones simultáneas.
+export const pairMembers = pgTable('pair_members', {
+  participantId: uuid('participant_id')
+    .primaryKey()
+    .references(() => participants.id, { onDelete: 'cascade' }),
+  pairId: uuid('pair_id')
+    .notNull()
+    .references(() => pairs.id, { onDelete: 'cascade' }),
+});
+
+export const wishlistKind = pgEnum('wishlist_kind', ['link', 'file']);
+
+// Lista de deseos: un único elemento por participante, un enlace https o un
+// archivo guardado en el almacenamiento S3 (R2 en producción).
+export const wishlists = pgTable(
+  'wishlists',
+  {
+    participantId: uuid('participant_id')
+      .primaryKey()
+      .references(() => participants.id, { onDelete: 'cascade' }),
+    kind: wishlistKind('kind').notNull(),
+    url: varchar('url', { length: 2000 }),
+    // Clave del objeto: rooms/<sala>/<participante>/<aleatorio>.<ext>
+    fileKey: varchar('file_key', { length: 200 }),
+    fileName: varchar('file_name', { length: 100 }),
+    fileType: varchar('file_type', { length: 50 }),
+    fileSize: integer('file_size'),
+    updatedAt: timestamp('updated_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [
+    check(
+      'wishlists_shape',
+      sql`(${t.kind} = 'link' and ${t.url} is not null and ${t.fileKey} is null) or (${t.kind} = 'file' and ${t.fileKey} is not null and ${t.url} is null)`,
+    ),
+  ],
+);
+
 export type Room = typeof rooms.$inferSelect;
 export type Participant = typeof participants.$inferSelect;
+export type Pair = typeof pairs.$inferSelect;
+export type Wishlist = typeof wishlists.$inferSelect;

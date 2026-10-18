@@ -4,13 +4,13 @@ Aplicación web de “Amigo Invisible” (Secret Santa) para grupos, pensada par
 
 Proyecto personal y de aprendizaje, gratuito y sin monetización. Solo en español.
 
-> **Estado:** Fase 2 cerrada: se puede crear una sala, compartir la invitación, unirse y ver la lista en tiempo real. Parejas, deseos y sorteo llegan en las fases 3 y 4. Ver [`CONTEXT.md`](CONTEXT.md).
+> **Estado:** Fase 3a cerrada: el backend ya gestiona parejas, expulsiones, salidas, listas de deseos (enlace o archivo) y la edición de la sala. El frontend de la gestión es la Fase 3b; el sorteo, la Fase 4. Ver [`CONTEXT.md`](CONTEXT.md).
 
 ## Requisitos
 
 - Node.js 24 o superior y npm 11.
-- Docker, para el PostgreSQL de desarrollo (`docker-compose.yml`) y para los tests de integración (Testcontainers).
-- En producción: una base de datos PostgreSQL en Neon y, desde la Fase 3, un bucket de Cloudflare R2.
+- Docker, para el PostgreSQL y el almacenamiento S3 de desarrollo (`docker-compose.yml`) y para los tests de integración (Testcontainers).
+- En producción: una base de datos PostgreSQL en Neon y un bucket de Cloudflare R2.
 
 ## Estructura del repositorio
 
@@ -23,20 +23,20 @@ docs/
   openapi.json  Esquema OpenAPI exportado desde el backend
   componentes.md  Componentes reutilizables del frontend
 CONTEXT.md      Estado del proyecto para traspasos
-docker-compose.yml  PostgreSQL de desarrollo (puerto 54329)
+docker-compose.yml  PostgreSQL (puerto 54329) y S3 local con VersityGW (puerto 59000)
 Prompt_inicial_Amigo_Invisible.md   Fuente de verdad del proyecto
 ```
 
 ## Instalación
 
 ```bash
-docker compose up -d                  # PostgreSQL de desarrollo en el puerto 54329
+docker compose up -d                  # PostgreSQL (54329) y S3 local (59000)
 cd backend && npm install && cp .env.example .env
 npm run db:migrate                    # aplica las migraciones
 cd ../frontend && npm install && cp .env.example .env
 ```
 
-El PostgreSQL de desarrollo usa el puerto 54329 para no chocar con un PostgreSQL instalado en el sistema.
+El PostgreSQL de desarrollo usa el puerto 54329 para no chocar con un PostgreSQL instalado en el sistema. El almacenamiento S3 local es [VersityGW](https://github.com/versity/versitygw) en el puerto 59000. En desarrollo, el backend crea el bucket si no existe.
 
 ## Variables de entorno
 
@@ -55,10 +55,12 @@ Nunca subas archivos `.env` al repositorio; solo los `.env.example`.
 | `RATE_LIMIT_PER_MINUTE` | No | `300` | Peticiones por minuto y por IP en toda la API. Generoso porque un grupo puede compartir wifi. |
 | `RATE_LIMIT_CREATE_ROOM_PER_HOUR` | No | `10` | Salas que se pueden crear por hora y por IP. |
 | `RATE_LIMIT_JOIN_PER_MINUTE` | No | `30` | Entradas en salas por minuto y por IP. |
-| `R2_ACCOUNT_ID` | Desde la Fase 3 | — | Cuenta de Cloudflare. |
-| `R2_ACCESS_KEY_ID` | Desde la Fase 3 | — | Clave de acceso de R2. |
-| `R2_SECRET_ACCESS_KEY` | Desde la Fase 3 | — | Secreto de R2. |
-| `R2_BUCKET` | Desde la Fase 3 | — | Nombre del bucket. |
+| `RATE_LIMIT_UPLOAD_PER_HOUR` | No | `30` | Subidas de archivos por hora y por IP. |
+| `S3_ENDPOINT` | **Sí** | — | Almacenamiento S3. En R2: `https://<cuenta>.r2.cloudflarestorage.com`; en local: `http://localhost:59000`. |
+| `S3_REGION` | No | `auto` | `auto` en R2; `us-east-1` en local. |
+| `S3_ACCESS_KEY_ID` | **Sí** | — | Clave de acceso (en R2, la de un token de API limitado al bucket). |
+| `S3_SECRET_ACCESS_KEY` | **Sí** | — | Secreto de esa clave. |
+| `S3_BUCKET` | **Sí** | — | Nombre del bucket. |
 
 Si una variable es inválida, el backend no arranca y muestra solo su nombre, nunca su valor. En local, el backend carga `backend/.env` con `process.loadEnvFile`; en producción las variables las define el hosting.
 
@@ -130,7 +132,19 @@ npm run lint
 | GET | `/api/invitations/:code` | — | Resumen público para unirse: datos, nombres y `cannotJoinReason`. |
 | POST | `/api/invitations/:code/participants` | — | Se une con un nombre. Devuelve `participantToken` (solo esta vez). 409 `ROOM_FULL`, `ROOM_CLOSED` o `NAME_TAKEN`. |
 | GET | `/api/me` | Personal | Estado de la sala para el participante. |
-| GET | `/api/manage` | Gestión | Estado de la sala para el organizador. |
+| GET | `/api/manage` | Gestión | Estado de la sala para el organizador, con las parejas. |
+| PATCH | `/api/manage/room` | Gestión | Edita nombre, fecha o presupuesto (solo los campos enviados; `null` borra la fecha o el presupuesto). |
+| PUT | `/api/manage/pair-rule` | Gestión | `{ enabled }`: activa o desactiva la regla de pareja. |
+| POST | `/api/manage/pairs` | Gestión | `{ participantIds: [a, b] }`: marca una pareja. 409 `ALREADY_PAIRED`. |
+| DELETE | `/api/manage/pairs/:pairId` | Gestión | Deshace una pareja. |
+| DELETE | `/api/manage/participants/:id` | Gestión | Expulsa: borra su pareja, su lista y su archivo, y cierra sus sockets. |
+| DELETE | `/api/me` | Personal | Sale de la sala, con el mismo efecto que expulsar. |
+| PUT | `/api/me/wishlist/link` | Personal | `{ url }` https: reemplaza la lista. |
+| PUT | `/api/me/wishlist/file` | Personal | `multipart/form-data` con `file`: PDF, JPEG, PNG o WebP de hasta 5 MB según su contenido real. 413 `FILE_TOO_LARGE`, 415 `UNSUPPORTED_FILE_TYPE`. |
+| DELETE | `/api/me/wishlist` | Personal | Quita la lista (y borra el archivo). |
+| GET | `/api/wishlists/:participantId/file` | Personal | `{ url, expiresInSeconds }`: URL firmada de 5 minutos para descargar el archivo de alguien de la misma sala. |
+
+Todas las modificaciones exigen que la sala esté abierta (409 `ROOM_CLOSED` después del sorteo). `/api/me` incluye la lista de deseos de cada participante (el enlace, o el nombre, tipo y tamaño del archivo) y las parejas; la clave del archivo en el almacenamiento nunca sale del backend.
 
 Un token ausente, mal formado o inválido devuelve siempre el mismo 404 `NOT_FOUND`, para no revelar si un enlace existió.
 
@@ -152,16 +166,16 @@ Socket.IO en el namespace `/rooms`. El cliente se conecta con `auth: { role: 'or
 
 | Evento | Emisor | Receptor | Payload | Cuándo |
 |---|---|---|---|---|
-| `room:changed` | Servidor | Organizador y participantes de la sala | Ninguno | Alguien entra en la sala (Fase 2). En las fases siguientes, también parejas, salidas, deseos y sorteo. |
+| `room:changed` | Servidor | Organizador y participantes de la sala | Ninguno | Alguien entra, sale o es expulsado; se marca o deshace una pareja; cambia la regla de pareja o los datos de la sala; alguien cambia su lista de deseos. En la Fase 4, también el sorteo. |
 
-Cada socket entra en la room `room:<id>` de su sala; los de participantes, también en `participant:<id>`, reservada para avisos individuales (Fase 4). La asignación del sorteo nunca viaja por el socket: el participante la pide por HTTP con su token.
+Cada socket entra en la room `room:<id>` de su sala; los de participantes, también en `participant:<id>`. Al expulsar a alguien o cuando sale, el servidor cierra sus sockets (motivo `io server disconnect`, sin reconexión automática): el cliente recarga y recibe «No encontrado». La asignación del sorteo nunca viaja por el socket: el participante la pide por HTTP con su token.
 
 ## Arquitectura
 
 - **Frontend** (Cloudflare Pages): SPA estática. Las rutas de invitación, personal y gestión son rutas del cliente; Pages sirve `index.html` para cualquier ruta sin archivo, porque no hay `404.html`.
 - **Backend** (Render Free): NestJS en una sola instancia. API REST bajo `/api`, `/health` fuera del prefijo y un gateway de Socket.IO con una room por sala (adaptador en memoria). Todo el estado vive en la base de datos; los sockets solo notifican.
 - **Base de datos** (Neon): PostgreSQL con Drizzle ORM y migraciones de `drizzle-kit`. Todo cuelga de la sala con `ON DELETE CASCADE`.
-- **Archivos** (Cloudflare R2): las subidas pasan por el backend, que valida el tipo real y el tamaño. Las descargas usan URLs firmadas de corta duración y no pasan por el backend.
+- **Archivos** (Cloudflare R2; VersityGW en desarrollo y tests): las subidas pasan por el backend, que valida el tipo real por sus primeros bytes y el tamaño. Las claves van bajo `rooms/<sala>/<participante>/`. Las descargas usan URLs firmadas de 5 minutos (como adjunto, con el nombre limpio) y no pasan por el backend, que así no gasta su tráfico de salida.
 
 ## Algoritmo del sorteo
 
@@ -187,6 +201,10 @@ Implementado en `backend/src/draw/draw.ts`, como función pura sin base de datos
 | Neon | Se suspende a los 5 min y despierta en milisegundos, sin pausar el proyecto (Supabase pausa todo tras una semana). |
 | Cloudflare Pages | Estático gratuito con fallback de SPA automático. |
 | Cloudflare R2 | 10 GB gratis y salida de datos gratuita; el peor caso es 1,5 GB. Pide tarjeta para verificar, sin cobro dentro de la capa gratuita. |
+| VersityGW en local | MinIO dejó de publicar imágenes de Docker en 2025. VersityGW es compatible con S3, verifica las firmas como R2 y es ligero, así que se prueba el mismo código que irá a producción. |
+| `pair_members` | Una fila por miembro de pareja, con el participante como clave primaria: la base de datos impide que alguien esté en dos parejas aunque lleguen peticiones simultáneas. El bloqueo de la sala es la primera barrera. |
+| Subir antes de guardar | El archivo se sube al almacenamiento antes de la transacción; si luego no se puede guardar (sala cerrada, participante borrado), se borra. Al reemplazar, quitar, salir o expulsar, el archivo anterior se borra tras confirmar la transacción. |
+| Nombres de archivo en UTF-8 | Multer lee por defecto los nombres como latin1; se configura `defParamCharset: 'utf8'` para que «ñ» y las tildes lleguen bien. |
 | Figtree autoalojada | Se sirve desde el propio frontend con `@fontsource`, sin depender de Google Fonts. |
 | Exportación de OpenAPI compilada | `npm run openapi` usa `tsc` (vía `nest build`) porque los metadatos de los decoradores son necesarios para Swagger y la inyección de dependencias. |
 
@@ -199,11 +217,11 @@ Se completa en la Fase 5. Esquema previsto:
 1. **Base de datos:** crear el proyecto en Neon y aplicar las migraciones desde local con `DATABASE_URL` apuntando a Neon: `cd backend && npm run db:migrate`.
 2. **Backend:** servicio web en Render con raíz `backend/`, build `npm ci && npm run build`, arranque `npm run start:prod` y las variables de entorno de la tabla.
 3. **Frontend:** proyecto en Cloudflare Pages con raíz `frontend/`, build `npm ci && npm run build`, salida `dist` y `VITE_API_URL`.
-4. **R2:** crear el bucket y unas credenciales limitadas a ese bucket. Configurar una alerta de facturación.
+4. **R2:** crear el bucket y un token de API con permiso de lectura y escritura solo sobre ese bucket. Poner en Render `S3_ENDPOINT=https://<cuenta>.r2.cloudflarestorage.com`, `S3_REGION=auto`, la clave, el secreto y `S3_BUCKET`. No hace falta configurar CORS: el navegador descarga los archivos navegando a la URL firmada. Configurar una alerta de facturación.
 
 ## Borrado de salas
 
-La aplicación nunca borra salas. El único borrado es manual, por el administrador, con un script local sin endpoint público (llega en la Fase 5). El script elimina la sala y, en cascada, participantes, parejas, listas, tokens y sorteos, además de sus archivos en R2.
+La aplicación nunca borra salas. El único borrado es manual, por el administrador, con un script local sin endpoint público (llega en la Fase 5). El script elimina la sala y, en cascada, participantes, parejas, listas, tokens y sorteos, además de sus archivos en R2 (todo lo que hay bajo `rooms/<id de la sala>/`).
 
 ## Limitaciones conocidas
 
