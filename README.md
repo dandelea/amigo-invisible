@@ -384,7 +384,7 @@ npm run rooms -- delete <id de la sala>      # pide escribir el nombre de la sal
 npm run rooms -- delete <id de la sala> --yes  # sin preguntar
 ```
 
-El script usa `backend/.env`. Para producción, apunta `DATABASE_URL` y las `S3_*` a Neon y R2 (en el `.env` o en el entorno de la orden). Primero borra los archivos de la sala en el almacenamiento (todo lo que hay bajo `rooms/<id>/`) y después la sala, que arrastra en cascada participantes, parejas, listas, tokens y asignaciones. Si falla el borrado de archivos, la sala queda intacta y se puede repetir. **No se puede deshacer y no hay copias de seguridad.**
+El script usa `backend/.env`. Para producción, apunta `DATABASE_URL` y las `S3_*` a Neon y R2 en el entorno de la orden, sin guardarlas en archivos: paso a paso en [docs/borrar-salas-produccion.md](docs/borrar-salas-produccion.md). Primero borra los archivos de la sala en el almacenamiento (todo lo que hay bajo `rooms/<id>/`) y después la sala, que arrastra en cascada participantes, parejas, listas, tokens y asignaciones. Si falla el borrado de archivos, la sala queda intacta y se puede repetir. **No se puede deshacer y no hay copias de seguridad.**
 
 ## Limitaciones conocidas
 
