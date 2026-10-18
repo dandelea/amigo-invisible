@@ -284,6 +284,27 @@ Las condiciones de las capas gratuitas se comprobaron el 17 de octubre de 2026; 
 
 Todo en capas gratuitas. Orden recomendado: **Neon → R2 → Render → Cloudflare Pages → ajustar CORS**, porque cada paso necesita un dato del anterior. Las claves se pegan solo en los paneles de cada servicio, nunca en el repositorio.
 
+### Servicios en uso
+
+Dónde está cada pieza del despliegue actual (octubre de 2026), para saber a qué panel ir. Todo en planes gratuitos. Las URLs concretas y las claves solo están en los paneles de cada servicio.
+
+| Pieza           | Servicio                                                        | Qué hay allí                                                                                                          |
+| --------------- | --------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------- |
+| Código          | [GitHub](https://github.com)                                    | Repositorio público; Render y Cloudflare Pages leen de él.                                                            |
+| Base de datos   | [Neon](https://console.neon.tech)                               | Proyecto PostgreSQL en Frankfurt. Cadena directa para migraciones y _pooled_ para la app.                             |
+| Archivos        | [Cloudflare R2](https://dash.cloudflare.com)                    | Bucket de las listas de deseos y token de API limitado a ese bucket.                                                  |
+| Backend         | [Render](https://dashboard.render.com)                          | Servicio web creado con `render.yaml` (Blueprint), Free y en Frankfurt. Variables de entorno y logs.                  |
+| Frontend        | [Cloudflare Pages](https://dash.cloudflare.com)                 | Proyecto de **Pages** (no un Worker, que no admite dominio propio con DNS externo), con raíz `frontend`.              |
+| Dominio         | Cloudflare Pages («Custom domains») + DNS en Netlify            | Subdominio propio para el frontend; certificado HTTPS emitido por Cloudflare.                                         |
+| DNS del dominio | [Netlify](https://app.netlify.com) («Domains» → «DNS settings») | Registro `CNAME` del subdominio hacia `<proyecto>.pages.dev`. Netlify no aloja nada de la app (no admite WebSockets). |
+
+Relaciones que hay que mantener al cambiar algo:
+
+- `CORS_ORIGIN` en Render = URL pública del frontend (el subdominio).
+- `VITE_API_URL` en Pages = URL del servicio de Render; al cambiarla hay que volver a desplegar el frontend, porque también genera la CSP.
+- `DATABASE_URL` en Render = cadena _pooled_ de Neon; las migraciones van con la directa (paso 1.3).
+- `S3_*` en Render = endpoint, bucket y token de R2.
+
 ### 1. Base de datos (Neon)
 
 1. Crear una cuenta y un proyecto en [neon.com](https://neon.com), en una región de Europa (p. ej. Frankfurt).
@@ -329,18 +350,19 @@ Todo en capas gratuitas. Orden recomendado: **Neon → R2 → Render → Cloudfl
 1. Cloudflare → «Workers & Pages» → «Create» → «Pages» → conectar este repositorio.
 2. Configuración de build:
 
-   | Opción               | Valor                                                                                |
-   | -------------------- | ------------------------------------------------------------------------------------ |
-   | Directorio raíz      | `frontend`                                                                           |
-   | Comando de build     | `npm ci && npm run build`                                                            |
-   | Directorio de salida | `dist`                                                                               |
-   | Variables de entorno | `VITE_API_URL=https://<servicio>.onrender.com` (sin barra final) y `NODE_VERSION=24` |
+   | Opción               | Valor                                                                                  |
+   | -------------------- | -------------------------------------------------------------------------------------- |
+   | Directorio raíz      | `frontend`                                                                             |
+   | Comando de build     | `npm run build` (Pages ya instala las dependencias con `npm ci` en el directorio raíz) |
+   | Directorio de salida | `dist`                                                                                 |
+   | Variables de entorno | `VITE_API_URL=https://<servicio>.onrender.com` (sin barra final) y `NODE_VERSION=24`   |
 
 3. Desactivar los despliegues automáticos (ver «Actualizaciones posteriores») y desplegar. Pages aplica `dist/_headers` (CSP con la URL del backend) y, al no haber `404.html`, sirve `index.html` en cualquier ruta, así que los enlaces `/s/…`, `/p#…` y `/o#…` funcionan.
+4. Opcional, dominio propio con el DNS en otro proveedor (p. ej. Netlify): en Pages → «Custom domains» → «Set up a custom domain», escribir el subdominio (p. ej. `amigo.example.com`). Pages indica el CNAME que hay que crear; en el DNS del proveedor, añadir un registro `CNAME` con el nombre del subdominio y el valor `<proyecto>.pages.dev`. Pages emite el certificado HTTPS cuando detecta el registro (de minutos a unas horas). Con DNS externo solo se pueden usar subdominios, no el dominio raíz.
 
 ### 5. Ajustar CORS y comprobar
 
-1. En Render, cambiar `CORS_ORIGIN` a la URL de Pages (`https://<proyecto>.pages.dev`) y volver a desplegar.
+1. En Render, cambiar `CORS_ORIGIN` a la URL del frontend (`https://<proyecto>.pages.dev`, o el dominio propio si se configuró) y volver a desplegar. Solo admite un origen: con dominio propio, la URL `pages.dev` deja de poder usar el API.
 2. Comprobar desde el móvil:
    - crear una sala, unirse desde otro navegador, sortear y ver el resultado;
    - subir un archivo a la lista de deseos y descargarlo.
