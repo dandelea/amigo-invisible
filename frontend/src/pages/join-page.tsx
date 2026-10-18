@@ -77,6 +77,8 @@ export function JoinPage() {
       if (errCode === 'NAME_TAKEN') {
         setNameError(t.join.nameTaken(cleaned))
         setNameTaken(true)
+      } else if (errCode === 'VALIDATION_ERROR' && err?.fields.name) {
+        setNameError(err.fields.name)
       } else if (
         errCode === 'ROOM_FULL' ||
         errCode === 'ROOM_CLOSED' ||

@@ -24,6 +24,11 @@ export function subscribeToRoom(
   socket.on('connect_error', (err) => {
     if (err.message === 'NOT_FOUND') onAuthError()
   })
+  // El servidor cierra el socket de quien es expulsado o sale: se recarga
+  // el estado, que responderá «No encontrado».
+  socket.on('disconnect', (reason) => {
+    if (reason === 'io server disconnect') onChange()
+  })
   return () => {
     socket.disconnect()
   }

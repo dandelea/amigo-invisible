@@ -21,6 +21,10 @@ const buttonVariants = cva(
         md: "min-h-11 px-4 text-[15px]",
         lg: "min-h-13 px-4 text-[17px]",
         icon: "size-11 p-0",
+        // Más discreto (36 px) dentro de una fila, pero con un área invisible
+        // alrededor para mantener el objetivo táctil de 44 px.
+        "icon-sm":
+          "relative size-9 p-0 after:absolute after:-inset-1 after:content-[''] [&_svg:not([class*='size-'])]:size-[18px]",
       },
     },
     defaultVariants: {

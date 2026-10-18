@@ -1092,6 +1092,16 @@
           "message": {
             "type": "string",
             "example": "No encontrado"
+          },
+          "fields": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            },
+            "example": {
+              "budget": "El presupuesto máximo es 1000 €"
+            },
+            "description": "Solo con VALIDATION_ERROR: el primer error de cada campo, para mostrarlo junto a él."
           }
         },
         "required": [

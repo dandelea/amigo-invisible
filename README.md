@@ -4,7 +4,7 @@ Aplicación web de “Amigo Invisible” (Secret Santa) para grupos, pensada par
 
 Proyecto personal y de aprendizaje, gratuito y sin monetización. Solo en español.
 
-> **Estado:** Fase 3a cerrada: el backend ya gestiona parejas, expulsiones, salidas, listas de deseos (enlace o archivo) y la edición de la sala. El frontend de la gestión es la Fase 3b; el sorteo, la Fase 4. Ver [`CONTEXT.md`](CONTEXT.md).
+> **Estado:** Fase 3 cerrada: crear sala, unirse, lista en tiempo real, parejas, regla de pareja, expulsar, salir, listas de deseos (enlace o archivo) y editar la sala. El sorteo llega en la Fase 4. Ver [`CONTEXT.md`](CONTEXT.md).
 
 ## Requisitos
 
@@ -90,8 +90,9 @@ cd frontend && npm run dev
 | `/crear` | Formulario de la sala |
 | `/creada` | Enlaces de invitación y de gestión, justo después de crear. Si se recarga, vuelve al inicio: el enlace de gestión solo se muestra una vez |
 | `/s/<código>` | Unirse con un nombre (o «Sala llena» / «Sala cerrada») |
-| `/p#<token>` | Sala del participante, en tiempo real |
-| `/o#<token>` | Panel del organizador, en tiempo real |
+| `/p#<token>` | Sala del participante, en tiempo real: parejas, listas de deseos de todos (botón de regalo), «Mi lista de deseos» con su editor (enlace o archivo) y «Salir de la sala» |
+| `/o#<token>` | Panel del organizador, en tiempo real: editar la sala, regla de pareja, marcar y deshacer parejas, enlace de invitación y menú ⋮ por persona para expulsar |
+| `/salida` | «Has salido de la sala», tras salir |
 | cualquier otra | «No encontrado» |
 
 El frontend está en `frontend/src`:
@@ -120,7 +121,7 @@ npm run lint
 - Swagger UI en `/api/docs` (JSON en `/api/docs-json`).
 - Exportar el esquema al repo después de cualquier cambio en endpoints o DTOs: `cd backend && npm run openapi` (escribe `docs/openapi.json`).
 - Autenticación: cada enlace secreto lleva un token en el fragmento de la URL (`#`), que nunca llega a los logs del servidor. El cliente lo envía en `Authorization: Bearer <token>`. El servidor solo guarda su hash SHA-256.
-- Errores: todas las respuestas de error tienen la forma `{ statusCode, error, message }`, donde `error` es un código estable (`NOT_FOUND`, `ROOM_FULL`…).
+- Errores: todas las respuestas de error tienen la forma `{ statusCode, error, message }`, donde `error` es un código estable (`NOT_FOUND`, `ROOM_FULL`…). Con `VALIDATION_ERROR` llevan además `fields`, con el primer error de cada campo en español (`{ "budget": "El presupuesto máximo es 1000 €" }`). El frontend lo muestra en rojo junto al campo, igual que su propia validación previa.
 
 ### Endpoints actuales
 

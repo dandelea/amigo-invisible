@@ -4,17 +4,59 @@ Resumen para traspasos entre agentes. La fuente de verdad es [`Prompt_inicial_Am
 
 ## Fase actual
 
-**Fase 3a (backend de la gestión): terminada el 18 de octubre de 2026, pendiente de revisión del usuario.** Siguiente: **Fase 3b, frontend de la gestión**, con el plan de abajo.
+**Fase 3 (gestión): terminada el 18 de octubre de 2026, pendiente de revisión del usuario.** Siguiente: **Fase 4, sorteo**. Además de lo del prompt inicial, incluye lo que pidió el usuario: ESLint y Prettier con Husky y lint-staged, y la carpeta `.vscode/` (ver abajo). Antes de codificar, presentar un plan breve y esperar confirmación.
 
 ## Fase 3: plan confirmado
 
 - **3a, backend** (hecha; resumen abajo).
-- **3b, frontend** (pendiente):
+- **3b, frontend** (hecha; resumen abajo):
   - participante: parejas en bloque (línea y corazón), botón de regalo para ver deseos («Sin lista» si no hay), «Mi lista de deseos» con Cambiar y Quitar, editor Enlace / Archivo, «Salir de la sala» con confirmación (`SalirConfirmar`) y pantalla «Has salido de la sala. Puedes volver a entrar con el enlace de invitación mientras siga abierta»;
   - organizador: interruptor de la regla de pareja (`OrganizadorRegla`), «Marcar pareja» (`MarcarPareja`) y «Deshacer pareja», menú ⋮ por persona con «Expulsar» y confirmación «¿Expulsar a Marta? Se borrarán su lista de deseos y su pareja, y su enlace dejará de funcionar», y «Editar» los datos de la sala (también desde «Sala creada»);
   - componentes `IconButton`, `SegmentedControl`, `Switch`, `SelectableOption`, `ResponsiveDialog`, `ConfirmDialog`, `ActionSheetItem`, `PairGroup`, `WishlistCard` y `WishlistEditor`;
   - al expulsar o salir, el servidor cierra el socket del participante (`io server disconnect`): el cliente debe recargar y mostrar «No encontrado».
 - **Pasan a la Fase 4** (confirmado por el usuario): «Regenerar enlace personal» en el menú ⋮ y el aviso «No hay solución» junto a «Sortear».
+- **Pedido por el usuario para la Fase 4** (18/10/2026): ESLint y Prettier en todo el proyecto, con Husky y lint-staged en el pre-commit. Hoy backend y frontend usan oxlint (venía con las plantillas) y solo el backend tiene Prettier: al planificar, decidir con el usuario si ESLint sustituye a oxlint o convive con él.
+- **Pedido por el usuario para la Fase 4** (18/10/2026): carpeta `.vscode/` con configuraciones de depuración recomendadas (`launch.json`) y extensiones recomendadas (`extensions.json`) para este proyecto. El `.gitignore` ya deja pasar `.vscode/extensions.json`; habrá que permitir también `launch.json`.
+
+## Fase 3b: resumen
+
+### Hecho
+
+- **Participante** (`src/pages/participant-page.tsx`):
+  - parejas agrupadas en `PairGroup`, con línea, corazón y `aria-label` «Pareja: Ana y Luis»;
+  - botón de regalo por persona con lista (`WishlistButton`): diálogo con «Abrir enlace» (`target="_blank" rel="noopener noreferrer"`) o «Descargar archivo» (pide la URL firmada en el momento); «Sin lista» si no tiene;
+  - `MyWishlist` con Añadir o Cambiar y Quitar, y el editor Enlace / Archivo (valida https, tipo y 5 MB antes de enviar; tacha el archivo actual al elegir uno nuevo);
+  - «Salir de la sala» con `ConfirmDialog` y la ruta `/salida`.
+  - Tras el sorteo no se puede editar ni salir, pero las listas se siguen viendo.
+- **Organizador** (`src/pages/organizer-page.tsx`):
+  - «Editar» (`EditRoomDialog`, solo envía los campos cambiados);
+  - interruptor de la regla de pareja con el estado en texto;
+  - «Marcar pareja» (`MarkPairDialog`, solo personas sin pareja y como mucho dos) y «Deshacer pareja»;
+  - menú ⋮ con «Expulsar» y su confirmación (`ParticipantActions`);
+  - «Sin pareja» bajo quien no la tiene.
+  - Tras el sorteo, todo bloqueado.
+- **«Sala creada»** tiene «Editar», y los cambios se ven al momento.
+- **Socket**: si el servidor lo cierra (`io server disconnect`), se recarga el estado y aparece «No encontrado».
+- **Componentes base nuevos**: `ResponsiveDialog`, `ConfirmDialog`, `IconButton` (con tooltip), `SegmentedControl`, `Switch`, `SelectableOption` y `ActionSheetItem`. La lógica del formulario de la sala está en `hooks/use-room-form.ts`, compartida por crear y editar.
+- **Tests**: 60 en el frontend y ningún aviso en la consola; backend con 65 unitarios y 108 de integración.
+
+- **Validación de formularios** (pedido por el usuario durante la fase):
+  - el presupuesto es un campo numérico (`type="number"`, de 1 a 1000, paso 0,01; Chrome en español acepta la coma);
+  - el cliente valida con mensajes concretos (mínimo, máximo, decimales, no numérico, fecha pasada o a más de 2 años) y marca los campos en rojo con su explicación;
+  - el servidor devuelve `fields` con el error de cada campo, que el frontend muestra igual que los suyos (crear y editar sala, unirse y enlace de deseos);
+  - los campos no permitidos ya no dan mensajes en inglés.
+- **Revisión visual** con Chrome sin ventana (playwright-core y el Chrome del sistema, script fuera del repo): 25 capturas en móvil y ordenador de todas las pantallas y diálogos. Se encontró y corrigió el orden en móvil del participante y del organizador: la lista debe ir antes de «Mi lista de deseos», como en los mockups. `TwoColumns` usa ahora `top` / `main` / `bottom`.
+
+### Decisiones
+
+- Un solo Dialog de Radix con estilos responsive en lugar de Drawer (vaul) + Dialog (se quitó vaul). Se pierde cerrar la hoja arrastrándola.
+- En «Marcar pareja» se usa «Ya tiene pareja» (neutro) en lugar de «Ya emparejada / Ya emparejado» de los mockups, porque no sabemos el género.
+- `lib/navigation.ts` (`goToUrl`) aísla la navegación a la URL de descarga, para poder probarla.
+- `src/test/setup.ts` define un `ResizeObserver` mínimo (jsdom no lo tiene y lo usan los tooltips).
+
+### Pendiente
+
+- Fase 4 (sorteo y lo pedido para ella).
 
 ## Fase 3a: resumen
 

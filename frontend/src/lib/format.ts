@@ -44,3 +44,12 @@ export function todayIso(now = new Date()): string {
 export function initialOf(name: string): string {
   return Array.from(name.trim())[0]?.toLocaleUpperCase('es') ?? '?'
 }
+
+// «1,2 MB», «840 KB»
+export function formatFileSize(bytes: number): string {
+  if (bytes < 1024 * 1024) {
+    return `${Math.max(1, Math.round(bytes / 1024))} KB`
+  }
+  const mb = bytes / (1024 * 1024)
+  return `${mb.toLocaleString('es-ES', { maximumFractionDigits: 1 })} MB`
+}

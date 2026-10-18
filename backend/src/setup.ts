@@ -15,17 +15,23 @@ import { CorsIoAdapter } from './realtime/cors-io.adapter.js';
 
 export const TOKEN_AUTH = 'token';
 
-// Errores de validación: un mensaje en español por campo, con código
-// VALIDATION_ERROR.
+// Errores de validación: código VALIDATION_ERROR, todos los mensajes en
+// `message` y el primero de cada campo en `fields`, para que el frontend
+// lo muestre junto al campo.
 function validationErrors(errors: ValidationError[]): BadRequestException {
-  const messages = errors.flatMap((e) =>
-    e.constraints
-      ? Object.values(e.constraints)
-      : [`El campo ${e.property} no es válido`],
-  );
+  const fields: Record<string, string> = {};
+  for (const e of errors) {
+    if (e.constraints?.whitelistValidation) {
+      fields[e.property] = `El campo «${e.property}» no está permitido`;
+      continue;
+    }
+    const first = e.constraints ? Object.values(e.constraints)[0] : undefined;
+    fields[e.property] = first ?? `El campo «${e.property}» no es válido`;
+  }
   return new BadRequestException({
     error: 'VALIDATION_ERROR',
-    message: messages,
+    message: Object.values(fields),
+    fields,
   });
 }
 

@@ -26,6 +26,20 @@ describe('toErrorBody', () => {
     });
   });
 
+  it('conserva los errores por campo', () => {
+    const ex = new BadRequestException({
+      error: 'VALIDATION_ERROR',
+      message: ['El presupuesto máximo es 1000 €'],
+      fields: { budget: 'El presupuesto máximo es 1000 €' },
+    });
+    expect(toErrorBody(ex)).toEqual({
+      statusCode: 400,
+      error: 'VALIDATION_ERROR',
+      message: 'El presupuesto máximo es 1000 €',
+      fields: { budget: 'El presupuesto máximo es 1000 €' },
+    });
+  });
+
   it('une los mensajes de validación', () => {
     const ex = new BadRequestException(['nombre vacío', 'fecha inválida']);
     expect(toErrorBody(ex).message).toBe('nombre vacío; fecha inválida');

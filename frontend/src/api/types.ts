@@ -38,10 +38,28 @@ export interface JoinRoomResponse {
   participantToken: string
 }
 
+export interface Wishlist {
+  kind: 'link' | 'file'
+  url: string | null
+  fileName: string | null
+  fileType: string | null
+  fileSize: number | null
+}
+
+export interface ParticipantWithWishlist extends Participant {
+  wishlist: Wishlist | null
+}
+
+export interface Pair {
+  id: string
+  participantIds: [string, string]
+}
+
 export interface ParticipantView {
   room: Room
   me: Participant
-  participants: Participant[]
+  participants: ParticipantWithWishlist[]
+  pairs: Pair[]
   maxParticipants: number
 }
 
@@ -49,7 +67,14 @@ export interface OrganizerView {
   room: Room
   inviteCode: string
   participants: Participant[]
+  pairs: Pair[]
   maxParticipants: number
+}
+
+export interface UpdateRoomInput {
+  name?: string
+  giftDate?: string | null
+  budget?: number | null
 }
 
 export type Role = 'organizer' | 'participant'

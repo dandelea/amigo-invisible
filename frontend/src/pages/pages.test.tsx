@@ -64,7 +64,7 @@ describe('Crear sala', () => {
     await user.type(screen.getByLabelText(t.create.budget), '0')
     await user.click(screen.getByRole('button', { name: t.create.submit }))
     expect(screen.getByText(t.create.errors.nameShort)).toBeInTheDocument()
-    expect(screen.getByText(t.create.errors.budget)).toBeInTheDocument()
+    expect(screen.getByText(t.create.errors.budgetMin)).toBeInTheDocument()
     expect(api.createRoom).not.toHaveBeenCalled()
   })
 
@@ -76,7 +76,7 @@ describe('Crear sala', () => {
     })
     const { user } = renderAt('/crear')
     await user.type(screen.getByLabelText(t.create.name), '  Cena de   Navidad ')
-    await user.type(screen.getByLabelText(t.create.budget), '15,5')
+    await user.type(screen.getByLabelText(t.create.budget), '15.5')
     await user.click(screen.getByRole('button', { name: t.create.submit }))
 
     expect(api.createRoom).toHaveBeenCalledWith({
@@ -106,6 +106,55 @@ describe('Crear sala', () => {
     expect(await screen.findByRole('alert')).toHaveTextContent(
       t.errors.MAX_ROOMS_REACHED,
     )
+  })
+
+  it('el presupuesto es un campo numérico con sus límites', () => {
+    renderAt('/crear')
+    const budget = screen.getByLabelText(t.create.budget)
+    expect(budget).toHaveAttribute('type', 'number')
+    expect(budget).toHaveAttribute('min', '1')
+    expect(budget).toHaveAttribute('max', '1000')
+    expect(budget).toHaveAttribute('step', '0.01')
+  })
+
+  it.each([
+    ['1000.5', t.create.errors.budgetMax],
+    ['0.5', t.create.errors.budgetMin],
+    ['12.345', t.create.errors.budgetDecimals],
+  ])('presupuesto %s: error en rojo junto al campo', async (value, message) => {
+    const { user } = renderAt('/crear')
+    await user.type(screen.getByLabelText(t.create.name), 'Cena')
+    await user.type(screen.getByLabelText(t.create.budget), value)
+    await user.click(screen.getByRole('button', { name: t.create.submit }))
+    const budget = screen.getByLabelText(t.create.budget)
+    expect(budget).toHaveAttribute('aria-invalid', 'true')
+    expect(budget).toHaveAccessibleDescription(
+      expect.stringContaining(message),
+    )
+    expect(api.createRoom).not.toHaveBeenCalled()
+  })
+
+  it('muestra junto a cada campo los errores de validación del servidor', async () => {
+    vi.mocked(api.createRoom).mockRejectedValue(
+      new ApiError(400, 'VALIDATION_ERROR', 'x', {
+        name: 'El nombre de la sala tiene caracteres no permitidos',
+        budget: 'El presupuesto máximo es 1000 €',
+      }),
+    )
+    const { user } = renderAt('/crear')
+    await user.type(screen.getByLabelText(t.create.name), 'Cena')
+    await user.click(screen.getByRole('button', { name: t.create.submit }))
+    const name = screen.getByLabelText(t.create.name)
+    await waitFor(() => expect(name).toHaveAttribute('aria-invalid', 'true'))
+    expect(name).toHaveAccessibleDescription(
+      expect.stringContaining('caracteres no permitidos'),
+    )
+    expect(screen.getByLabelText(t.create.budget)).toHaveAccessibleDescription(
+      expect.stringContaining('El presupuesto máximo es 1000 €'),
+    )
+    // El error de un campo se borra al editarlo.
+    await user.type(name, 's')
+    expect(name).not.toHaveAttribute('aria-invalid')
   })
 
   it('sin los datos de la creación, «Sala creada» vuelve al inicio', async () => {
@@ -154,7 +203,8 @@ describe('Unirse', () => {
     vi.mocked(api.getParticipantView).mockResolvedValue({
       room,
       me: { id: 'p4', name: 'Sofía' },
-      participants: [{ id: 'p4', name: 'Sofía' }],
+      participants: [{ id: 'p4', name: 'Sofía', wishlist: null }],
+      pairs: [],
       maxParticipants: 30,
     })
     const { user } = renderAt('/s/AbCdEfGhIjKlMnOp')
@@ -192,7 +242,12 @@ describe('Participante', () => {
   const view = (names: string[]): ParticipantView => ({
     room,
     me: { id: 'id-Ana', name: 'Ana' },
-    participants: names.map((name) => ({ id: `id-${name}`, name })),
+    participants: names.map((name) => ({
+      id: `id-${name}`,
+      name,
+      wishlist: null,
+    })),
+    pairs: [],
     maxParticipants: 30,
   })
 
@@ -245,6 +300,7 @@ describe('Organizador', () => {
       { id: '1', name: 'Ana' },
       { id: '2', name: 'Luis' },
     ],
+    pairs: [],
     maxParticipants: 30,
   }
 

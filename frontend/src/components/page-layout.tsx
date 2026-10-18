@@ -31,22 +31,27 @@ export function PageLayout({
   )
 }
 
-// Rejilla de dos columnas en ordenador (1,1fr y 1fr), una columna debajo.
+// Sala en dos columnas en ordenador (1,1fr y 1fr, como los mockups de
+// escritorio): la lista de participantes a la izquierda y el resto a la
+// derecha. En móvil es una sola columna con el orden de los mockups:
+// `top` encima de la lista y `bottom` debajo. Para eso, la columna derecha
+// usa `display: contents` en móvil y sus bloques se ordenan con `order`.
 export function TwoColumns({
-  children,
-  className,
+  top,
+  main,
+  bottom,
 }: {
-  children: ReactNode
-  className?: string
+  top: ReactNode
+  main: ReactNode
+  bottom?: ReactNode
 }) {
   return (
-    <div
-      className={cn(
-        'flex flex-col gap-3.5 lg:grid lg:grid-cols-[1.1fr_1fr] lg:items-start lg:gap-6',
-        className,
-      )}
-    >
-      {children}
+    <div className="flex flex-col gap-3.5 lg:grid lg:grid-cols-[1.1fr_1fr] lg:items-start lg:gap-6">
+      <div className="contents lg:col-start-2 lg:row-start-1 lg:flex lg:flex-col lg:gap-3.5">
+        <div className="order-1 flex flex-col gap-3.5">{top}</div>
+        {bottom && <div className="order-3 flex flex-col gap-3.5">{bottom}</div>}
+      </div>
+      <div className="order-2 lg:col-start-1 lg:row-start-1">{main}</div>
     </div>
   )
 }

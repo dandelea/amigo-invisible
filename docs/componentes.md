@@ -1,6 +1,8 @@
 # Componentes reutilizables del frontend
 
-Lista confirmada por el usuario en la Fase 0 (18/10/2026), obtenida analizando las 24 pantallas de móvil de `docs/mockups/`. Las vistas de tablet y ordenador usan las mismas piezas con más ancho. Se implementan a medida que cada fase los necesita. Implementados en la Fase 2: `Button`, `Card`, `Pill`, `Avatar` (inicial y pareja), `FormField`, `Alert`, `PageLayout` (con `TwoColumns`), `StepCard`, `StatusScreen`, `RoomHeader`, `ParticipantRow`, `ParticipantList` y `CopyLinkBox`.
+Lista confirmada por el usuario en la Fase 0 (18/10/2026), obtenida analizando las 24 pantallas de móvil de `docs/mockups/`. Las vistas de tablet y ordenador usan las mismas piezas con más ancho. Se implementan a medida que cada fase los necesita. Implementados:
+- **Fase 2**: `Button`, `Card`, `Pill`, `Avatar` (inicial y pareja), `FormField`, `Alert`, `PageLayout` (con `TwoColumns`), `StepCard`, `StatusScreen`, `RoomHeader`, `ParticipantRow`, `ParticipantList` y `CopyLinkBox`.
+- **Fase 3**: `IconButton`, `SegmentedControl`, `Switch`, `SelectableOption`, `ResponsiveDialog`, `ConfirmDialog`, `ActionSheetItem`, `PairGroup`, `WishlistCard` (`MyWishlist`, `WishlistButton` y `WishlistContent` en `wishlist.tsx` y `my-wishlist.tsx`), `WishlistEditor`, `RoomFields` (formulario de la sala, compartido por crear y editar), `EditRoomDialog`, `MarkPairDialog` y `ParticipantActions`.
 
 Los textos van en `frontend/src/texts/es.ts` y los colores en las variables CSS de `frontend/src/index.css`.
 
@@ -14,11 +16,11 @@ Los textos van en `frontend/src/texts/es.ts` y los colores en las variables CSS 
 | `Pill` | Badge | `neutral`, `accent`, `warning` (p. ej. «Opcional», «Tú», «Abierta · 5/30») |
 | `Avatar` | Avatar | inicial, número de paso, de pareja, visto ✓ y pendiente (borde discontinuo) |
 | `FormField` | Input + Label | etiqueta, contador, «Opcional», ayuda y error accesible (`aria-invalid` y `role="alert"`) |
-| `SegmentedControl` | ToggleGroup | Enlace / Archivo |
+| `SegmentedControl` | ToggleGroup (Radix) | Enlace / Archivo |
 | `Switch` | Switch | con descripción del estado en texto |
-| `SelectableOption` | Checkbox | fila seleccionable con nota (por ejemplo, «Ya emparejada»); se usa en Marcar pareja |
+| `SelectableOption` | casilla nativa | fila seleccionable con nota («Ya tiene pareja»); se usa en Marcar pareja |
 | `Alert` | Alert | `warning`, `success`, `error` |
-| `ResponsiveDialog` | Drawer + Dialog | hoja inferior en móvil, cuadro centrado de 460 px desde tablet |
+| `ResponsiveDialog` | Dialog (Radix) | hoja inferior en móvil, cuadro centrado de 460 px desde tablet. Un único Dialog con estilos responsive, en lugar de Drawer (vaul) + Dialog: misma accesibilidad, menos código y funciona en los tests; no se puede cerrar arrastrando |
 | `ConfirmDialog` | sobre ResponsiveDialog | título, texto, aviso opcional y acciones (repetir, salir, regenerar) |
 | `ActionSheetItem` | Button | título y descripción (Regenerar enlace, Expulsar) |
 | `ProgressBar` | Progress | contador de vistos y ruleta |

@@ -57,14 +57,24 @@ export function toErrorBody(exception: unknown): ErrorResponseDto {
   const response = exception.getResponse();
   let error = DEFAULT_CODES[statusCode] ?? 'ERROR';
   let message = exception.message;
+  let fields: Record<string, string> | undefined;
   if (typeof response === 'object' && response !== null) {
-    const r = response as { error?: unknown; message?: unknown };
+    const r = response as {
+      error?: unknown;
+      message?: unknown;
+      fields?: unknown;
+    };
     if (typeof r.error === 'string' && /^[A-Z_]+$/.test(r.error)) {
       error = r.error;
     }
     if (typeof r.message === 'string') message = r.message;
     if (Array.isArray(r.message)) message = r.message.join('; ');
+    if (r.fields && typeof r.fields === 'object') {
+      fields = r.fields as Record<string, string>;
+    }
   }
   if (statusCode === 413) message = 'El archivo pesa más de 5 MB';
-  return { statusCode, error, message };
+  return fields
+    ? { statusCode, error, message, fields }
+    : { statusCode, error, message };
 }

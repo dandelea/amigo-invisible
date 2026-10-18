@@ -178,7 +178,7 @@ Cada fase se cierra con tests en verde, Swagger y README al día y un resumen en
 2. **Fase 1, algoritmo**: sorteo en ciclo único con la regla de pareja y todos sus tests.
 3. **Fase 2, base**: modelo de datos, tokens, permisos, crear sala (con `MAX_ROOMS`), unirse y lista en tiempo real con reconexión.
 4. **Fase 3, gestión**: parejas, expulsión y listas de deseos (enlace y archivo).
-5. **Fase 4, sorteo**: sorteo en directo, ruleta, contador y lista de vistos, repetir sorteo y regenerar enlaces, con los tests de secreto.
+5. **Fase 4, sorteo**: sorteo en directo, ruleta, contador y lista de vistos, repetir sorteo y regenerar enlaces, con los tests de secreto. Además (pedido por el usuario el 18/10/2026): ESLint y Prettier en todo el proyecto, con Husky y lint-staged en el pre-commit; y una carpeta `.vscode/` con configuraciones de depuración y extensiones recomendadas para el proyecto.
 6. **Fase 5, pulido**: pantalla de arranque del servidor, accesibilidad, revisión de seguridad, script de borrado y despliegue manual documentado.
 
 ## Forma de trabajo

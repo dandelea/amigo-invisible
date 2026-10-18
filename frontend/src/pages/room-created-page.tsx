@@ -1,6 +1,8 @@
+import { useState } from 'react'
 import { Link, Navigate, useLocation } from 'react-router'
 import type { CreateRoomResponse } from '@/api/types'
 import { CopyLinkBox } from '@/components/copy-link-box'
+import { EditRoomDialog } from '@/components/edit-room-dialog'
 import { PageLayout } from '@/components/page-layout'
 import { Alert } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
@@ -15,14 +17,20 @@ import { t } from '@/texts/es'
 // porque el enlace de gestión solo se muestra una vez.
 export function RoomCreatedPage() {
   const created = useLocation().state as CreateRoomResponse | null
-  if (!created?.manageToken) return <Navigate to="/" replace />
-  const { room, inviteCode, manageToken } = created
+  // Los datos editados aquí se muestran al momento.
+  const [room, setRoom] = useState(created?.room)
+  const [editing, setEditing] = useState(false)
+  if (!created?.manageToken || !room) return <Navigate to="/" replace />
+  const { inviteCode, manageToken } = created
 
   return (
     <PageLayout>
       <h1 className="text-[28px] leading-tight font-bold">{t.created.title}</h1>
       <Card>
-        <h2 className="text-[17px] font-semibold break-words">{room.name}</h2>
+        <div className="flex items-center justify-between gap-2.5">
+          <h2 className="text-[17px] font-semibold break-words">{room.name}</h2>
+          <Button onClick={() => setEditing(true)}>{t.organizer.edit}</Button>
+        </div>
         {room.giftDate && (
           <p className="text-[13px] text-muted-foreground">
             {t.created.giftDate(formatLongDate(room.giftDate))}
@@ -55,6 +63,13 @@ export function RoomCreatedPage() {
       <Button asChild variant="secondary" className="lg:self-start">
         <Link to={managePath(manageToken)}>{t.created.goToRoom}</Link>
       </Button>
+      <EditRoomDialog
+        open={editing}
+        onOpenChange={setEditing}
+        token={manageToken}
+        room={room}
+        onSaved={setRoom}
+      />
     </PageLayout>
   )
 }

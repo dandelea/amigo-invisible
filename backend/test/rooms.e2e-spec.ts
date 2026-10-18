@@ -80,6 +80,23 @@ describe('Salas (e2e)', () => {
     });
   });
 
+  it('los errores de validación indican el campo y no hablan en inglés', async () => {
+    const res = await http(app)
+      .post('/api/rooms')
+      .send({ name: 'ab', budget: 1001, giftDate: '2020-01-01', extra: 1 })
+      .expect(400);
+    expect(res.body.error).toBe('VALIDATION_ERROR');
+    expect(Object.keys(res.body.fields).sort()).toEqual([
+      'budget',
+      'extra',
+      'giftDate',
+      'name',
+    ]);
+    expect(res.body.fields.budget).toBe('El presupuesto máximo es 1000 €');
+    expect(res.body.fields.extra).toBe('El campo «extra» no está permitido');
+    expect(JSON.stringify(res.body)).not.toMatch(/should|must|property/i);
+  });
+
   describe('MAX_ROOMS', () => {
     let limited: NestExpressApplication;
 
