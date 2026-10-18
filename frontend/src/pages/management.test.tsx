@@ -72,6 +72,7 @@ describe('Participante: parejas y deseos', () => {
     ],
     pairs: [{ id: 'pair-1', participantIds: ['id-Ana', 'id-Luis'] }],
     maxParticipants: 30,
+    draw: { round: 0, seen: false },
     ...over,
   });
 
@@ -251,10 +252,14 @@ describe('Participante: parejas y deseos', () => {
 
   it('tras el sorteo no se puede editar ni salir', async () => {
     vi.mocked(api.getParticipantView).mockResolvedValue(
-      view({ room: { ...room, status: 'drawn' } }),
+      view({
+        room: { ...room, status: 'drawn' },
+        draw: { round: 1, seen: false },
+      }),
     );
     renderAt(`/p#${TOKEN}`);
-    expect(await screen.findByText(t.wishlist.mine)).toBeInTheDocument();
+    expect(await screen.findByText(t.draw.doneTitle)).toBeInTheDocument();
+    expect(screen.queryByText(t.wishlist.mine)).toBeNull();
     expect(screen.queryByRole('button', { name: t.wishlist.add })).toBeNull();
     expect(
       screen.queryByRole('button', { name: t.participant.leave }),
@@ -289,6 +294,13 @@ describe('Organizador: gestión', () => {
     })),
     pairs: [{ id: 'pair-1', participantIds: ['id-Ana', 'id-Luis'] }],
     maxParticipants: 30,
+    draw: {
+      round: 0,
+      feasibility: { ok: true, code: null },
+      seenCount: 0,
+      total: 4,
+      seen: [],
+    },
     ...over,
   });
 
@@ -401,14 +413,25 @@ describe('Organizador: gestión', () => {
     vi.mocked(api.getOrganizerView).mockResolvedValue(
       view({ room: { ...room, status: 'drawn' } }),
     );
-    renderAt(`/o#${ORG}`);
-    expect(await screen.findByRole('switch')).toBeDisabled();
+    const { user } = renderAt(`/o#${ORG}`);
+    expect(await screen.findByText(t.draw.seenTitle)).toBeInTheDocument();
+    expect(screen.queryByRole('switch')).toBeNull();
     expect(screen.queryByRole('button', { name: t.organizer.edit })).toBeNull();
     expect(
       screen.queryByRole('button', { name: t.organizer.undoPair }),
     ).toBeNull();
     expect(
-      screen.queryByRole('button', { name: t.organizer.actions('Marta') }),
+      screen.queryByRole('button', { name: t.draw.drawButton }),
+    ).toBeNull();
+    // El menú ⋮ sigue (para regenerar enlaces), pero sin «Expulsar».
+    await user.click(
+      screen.getByRole('button', { name: t.organizer.actions('Marta') }),
+    );
+    expect(
+      screen.getByRole('button', { name: new RegExp(t.draw.regenerate) }),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', { name: new RegExp(t.organizer.expel) }),
     ).toBeNull();
   });
 

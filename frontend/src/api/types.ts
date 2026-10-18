@@ -55,12 +55,36 @@ export interface Pair {
   participantIds: [string, string];
 }
 
+export interface ParticipantDraw {
+  round: number;
+  seen: boolean;
+}
+
 export interface ParticipantView {
   room: Room;
   me: Participant;
   participants: ParticipantWithWishlist[];
   pairs: Pair[];
   maxParticipants: number;
+  draw: ParticipantDraw;
+}
+
+export interface OrganizerDraw {
+  round: number;
+  feasibility: {
+    ok: boolean;
+    code: 'NO_SOLUTION' | 'TOO_FEW_PARTICIPANTS' | null;
+  };
+  seenCount: number;
+  total: number;
+  // Solo nombre y estado: nunca a quién le ha tocado cada persona.
+  seen: { name: string; seen: boolean }[];
+}
+
+export interface Assignment {
+  receiver: ParticipantWithWishlist;
+  round: number;
+  seen: boolean;
 }
 
 export interface OrganizerView {
@@ -69,6 +93,7 @@ export interface OrganizerView {
   participants: Participant[];
   pairs: Pair[];
   maxParticipants: number;
+  draw: OrganizerDraw;
 }
 
 export interface UpdateRoomInput {

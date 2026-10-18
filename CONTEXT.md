@@ -4,7 +4,7 @@ Resumen para traspasos entre agentes. La fuente de verdad es [`Prompt_inicial_Am
 
 ## Fase actual
 
-**Fase 4b (backend del sorteo): terminada el 18 de octubre de 2026, pendiente de revisión del usuario.** Siguiente: **Fase 4c, frontend del sorteo**, con el plan de abajo.
+**Fase 4 (sorteo): terminada el 18 de octubre de 2026, pendiente de revisión del usuario.** Siguiente: **Fase 5, pulido**: pantalla «Despertando el servidor», accesibilidad, revisión de seguridad, script de borrado de salas y despliegue manual documentado. Antes de codificar, presentar un plan breve y esperar confirmación.
 
 ## Fase 4: plan confirmado
 
@@ -17,7 +17,7 @@ Resumen para traspasos entre agentes. La fuente de verdad es [`Prompt_inicial_Am
   - la vista del organizador lleva viabilidad, contador y lista de vistos con solo nombre y estado;
   - `GET /api/me/assignment` y `POST /api/me/assignment/seen`;
   - tests de secreto y de concurrencia.
-- **4c, frontend del sorteo** (pendiente):
+- **4c, frontend del sorteo** (hecha; resumen abajo):
   - aviso «No hay solución» y «Sortear»;
   - vista del sorteo con contador, barra y «Más» (modal de vistos);
   - «Repetir sorteo» con confirmación; «Regenerar enlace personal» en el menú ⋮ (confirmar y nuevo enlace);
@@ -27,6 +27,40 @@ Resumen para traspasos entre agentes. La fuente de verdad es [`Prompt_inicial_Am
   - la asignación se obtiene por HTTP con el token del participante y el socket solo avisa; el prompt inicial está actualizado;
   - ESLint sustituye a oxlint;
   - Prettier con un estilo común: comillas simples, comas finales y punto y coma.
+
+## Fase 4c: resumen
+
+### Hecho
+
+- **Organizador** (`src/pages/organizer-page.tsx`):
+  - antes del sorteo, aviso «No hay solución» o «faltan participantes» (con la viabilidad que da el backend) y «Sortear», desactivado si no se puede;
+  - después, `SeenCounter` («Resultados vistos X de N», barra de progreso y «Más» → `SeenList` con «Han visto» y «Pendientes», cada uno con su estado en texto) y «Repetir sorteo» con `ConfirmDialog` y el aviso de cuántos lo han visto;
+  - menú ⋮ (`ParticipantActions`): «Regenerar enlace personal» (confirmación y nuevo enlace, que se muestra una sola vez) siempre, y «Expulsar» solo antes del sorteo.
+  - Tras el sorteo se ocultan la regla, el enlace de invitación y «Sin pareja».
+- **Participante** (`DrawnParticipantView`, montado de nuevo en cada ronda con `key`):
+  - `RevealCard` («¡Ya se ha hecho el sorteo!»; tras repetir, `RepeatedNotice` y «Tienes un nuevo amigo invisible»);
+  - `Roulette` de unos 15 s con «Saltar animación»;
+  - `DrawResult`: asignado, su lista de deseos y «Guarda tu enlace personal».
+  - Con «reducir movimiento» no hay ruleta (`lib/motion.ts`). La asignación no se pide hasta pulsar «Descubrir».
+  - Al ver el resultado se llama a `markAssignmentSeen(token, ronda)`.
+- **Ruleta**: cinta de nombres con frenada suave y franja central. El elegido queda exactamente en la franja (comprobado en Chrome) y no se repite pegado a sí mismo. Es decorativa: el resultado ya lo ha decidido el servidor.
+- **Tests**: 71 en el frontend (11 nuevos del sorteo), incluida la ruleta con temporizadores simulados (sigue girando a los 10 s y termina hacia los 15 s), «Saltar animación», el movimiento reducido y el sorteo repetido a mitad de la vista.
+- **Revisión visual** con Chrome sin ventana (`draw-tour.cjs`, fuera del repo): 14 capturas, sin errores de página.
+  - La ruleta dura unos 15,4 s, contando la pausa final.
+  - El contador del organizador sube solo cuando alguien ve su resultado.
+  - El aviso de sorteo repetido llega al participante al momento.
+  - Con movimiento reducido no hay ruleta.
+
+### Decisiones
+
+- **Ruleta de unos 15 s con «Saltar animación»** (usuario, 18/10/2026): sustituye a los 3–5 s del prompt y recupera el botón del mockup. El prompt inicial y `MOCKUPS.md` están actualizados.
+- Sin confirmación antes del primer «Sortear», como en el mockup. Sí la hay antes de repetir.
+- La lista de participantes solo se ve en la pantalla para descubrir el resultado de la primera ronda. El resultado muestra solo lo del mockup.
+
+### Pendiente
+
+- Fase 5.
+- En desarrollo, `backend/.env` (local, ignorado por git) tiene `MAX_ROOMS=100` porque las pruebas llenaron las 10 salas de la base de datos de desarrollo.
 
 ## Fase 4b: resumen
 
@@ -315,7 +349,7 @@ Otras decisiones:
 
 - ORM Drizzle; Render, Neon, Cloudflare Pages y R2; descargas con URL firmada.
 - Parejas mostradas juntas en un bloque; el organizador edita los datos de la sala mientras está abierta; un único elemento de deseos por participante.
-- Se incluyen «Quitar mi lista», el menú de acciones por participante y «Editar sala». Se descarta «Saltar animación».
+- Se incluyen «Quitar mi lista», el menú de acciones por participante y «Editar sala». «Saltar animación» se descartó en la Fase 0 y se recuperó en la Fase 4c (ruleta de 15 s).
 - La ruleta arranca con «Descubrir mi amigo invisible» y vuelve a mostrarse una vez tras repetir el sorteo.
 - `npm run openapi` se ejecuta compilado: `tsx`/esbuild no emite los metadatos de los decoradores.
 - El paquete `cn` lo instala shadcn y es intencionado: sustituye a `clsx` + `tailwind-merge`.

@@ -79,4 +79,4 @@ Las pantallas 18 a 24 se añadieron el 17 de octubre de 2026 en la Fase 0, con e
 Confirmado con el usuario el 17 de octubre de 2026:
 
 - Incluidos en el MVP: botón "Quitar" para eliminar la lista de deseos propia; menú de acciones por participante en el panel del organizador (sustituye al botón "Expulsar" visible); botón "Editar" para los datos de la sala, en la sala creada y en el panel del organizador.
-- Descartado: botón "Saltar animación" en la ruleta. Aparece en `Ruleta`, `TRuleta` y `DRuleta`, pero no se implementa.
+- Botón "Saltar animación" en la ruleta: se descartó al principio y se recuperó el 18/10/2026, cuando la ruleta pasó a durar unos 15 s.

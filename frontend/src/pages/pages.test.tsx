@@ -221,6 +221,7 @@ describe('Unirse', () => {
       participants: [{ id: 'p4', name: 'Sofía', wishlist: null }],
       pairs: [],
       maxParticipants: 30,
+      draw: { round: 0, seen: false },
     });
     const { user } = renderAt('/s/AbCdEfGhIjKlMnOp');
     await user.type(await screen.findByLabelText(t.join.name), 'Sofía');
@@ -268,6 +269,7 @@ describe('Participante', () => {
     })),
     pairs: [],
     maxParticipants: 30,
+    draw: { round: 0, seen: false },
   });
 
   it('sin token válido muestra «No encontrado» sin llamar a la API', async () => {
@@ -331,6 +333,13 @@ describe('Organizador', () => {
     ],
     pairs: [],
     maxParticipants: 30,
+    draw: {
+      round: 0,
+      feasibility: { ok: true, code: null },
+      seenCount: 0,
+      total: 2,
+      seen: [],
+    },
   };
 
   it('muestra la sala, la invitación y la lista, sin «Tú»', async () => {

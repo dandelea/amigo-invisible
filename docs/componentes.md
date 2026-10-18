@@ -4,6 +4,7 @@ Lista confirmada por el usuario en la Fase 0 (18/10/2026), obtenida analizando l
 
 - **Fase 2**: `Button`, `Card`, `Pill`, `Avatar` (inicial y pareja), `FormField`, `Alert`, `PageLayout` (con `TwoColumns`), `StepCard`, `StatusScreen`, `RoomHeader`, `ParticipantRow`, `ParticipantList` y `CopyLinkBox`.
 - **Fase 3**: `IconButton`, `SegmentedControl`, `Switch`, `SelectableOption`, `ResponsiveDialog`, `ConfirmDialog`, `ActionSheetItem`, `PairGroup`, `WishlistCard` (`MyWishlist`, `WishlistButton` y `WishlistContent` en `wishlist.tsx` y `my-wishlist.tsx`), `WishlistEditor`, `RoomFields` (formulario de la sala, compartido por crear y editar), `EditRoomDialog`, `MarkPairDialog` y `ParticipantActions`.
+- **Fase 4**: `ProgressBar`, `Avatar` (visto y pendiente), `SeenCounter` y `SeenList`, `RevealCard`, `RepeatedNotice`, `Roulette`, `DrawResult` y `DrawnParticipantView`; `ParticipantActions` añade «Regenerar enlace personal».
 
 Los textos van en `frontend/src/texts/es.ts` y los colores en las variables CSS de `frontend/src/index.css`.
 

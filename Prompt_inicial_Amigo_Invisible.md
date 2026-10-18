@@ -56,7 +56,7 @@ No desarrollar: cuentas de usuario, email o notificaciones push, pagos o monetiz
 - Ve en tiempo real la lista de participantes, con las parejas indicadas y los datos de la sala.
 - Antes del sorteo puede añadir, cambiar o quitar (dejar vacía) su lista de deseos y salirse de la sala (su nombre queda libre y se eliminan su lista y su pareja).
 - Su lista de deseos es visible para todos en todo momento.
-- Al sortear ve una ruleta de nombres de 3 a 5 segundos que se detiene en su asignado, solo la primera vez. Después ve únicamente su asignación, sin animación. La ruleta arranca cuando el participante pulsa “Descubrir mi amigo invisible”, y vuelve a mostrarse una vez tras repetir el sorteo. No hay botón “Saltar animación” (descartado en el MVP, aunque aparece en los mockups).
+- Al sortear ve una ruleta de nombres de unos 15 segundos (cambiado de 3–5 s por el usuario el 18/10/2026) que se detiene en su asignado, solo la primera vez. Después ve únicamente su asignación, sin animación. La ruleta arranca cuando el participante pulsa “Descubrir mi amigo invisible”, y vuelve a mostrarse una vez tras repetir el sorteo. Tiene un botón “Saltar animación” para ir directo al resultado (recuperado del mockup por el usuario el 18/10/2026, junto con la duración de 15 s).
 - Nunca ve asignaciones ajenas.
 
 ## Reglas del sorteo
@@ -144,7 +144,7 @@ Cerradas con el usuario el 17 de octubre de 2026, en la Fase 0. El detalle está
 5. Un único elemento de deseos por participante, enlace o archivo: sí.
 6. Elementos de los mockups que no estaban en el documento:
    - Incluidos: “Quitar mi lista”, menú de acciones por participante en el panel del organizador y botón “Editar” de los datos de la sala.
-   - Descartado: botón “Saltar animación” en la ruleta.
+   - “Saltar animación” se descartó al principio y se recuperó el 18/10/2026, al alargar la ruleta a 15 s.
 
 ## Puntos abiertos
 

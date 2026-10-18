@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router';
 import { getParticipantView, leaveRoom } from '@/api/rooms';
 import { CopyLinkBox } from '@/components/copy-link-box';
+import { DrawnParticipantView } from '@/components/drawn-participant-view';
 import { MyWishlist } from '@/components/my-wishlist';
 import { PageLayout, TwoColumns } from '@/components/page-layout';
 import { ParticipantList } from '@/components/participant-list';
@@ -35,6 +36,17 @@ export function ParticipantPage() {
     return <LiveRoomFallback state={state} onRetry={reload} />;
   }
   const { room, me, participants, pairs, maxParticipants } = state.data;
+  // Tras el sorteo, la sala se convierte en el flujo del resultado. Se
+  // monta de nuevo en cada ronda para empezar de cero si se repite.
+  if (room.status === 'drawn') {
+    return (
+      <DrawnParticipantView
+        key={state.data.draw.round}
+        token={token}
+        data={state.data}
+      />
+    );
+  }
   const open = room.status === 'open';
   const mine = participants.find((p) => p.id === me.id)?.wishlist ?? null;
 

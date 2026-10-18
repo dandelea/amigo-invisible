@@ -1,11 +1,13 @@
 import { apiRequest } from './client';
 import type {
+  Assignment,
   CreateRoomInput,
   CreateRoomResponse,
   Invitation,
   JoinRoomResponse,
   OrganizerView,
   Pair,
+  ParticipantDraw,
   ParticipantView,
   Room,
   UpdateRoomInput,
@@ -61,6 +63,26 @@ export const expelParticipant = (token: string, participantId: string) =>
     token,
   });
 
+// Sorteo (organizador)
+
+export const draw = (token: string) =>
+  apiRequest<ParticipantDraw>('/api/manage/draw', { method: 'POST', token });
+
+export const redraw = (token: string) =>
+  apiRequest<ParticipantDraw>('/api/manage/redraw', {
+    method: 'POST',
+    token,
+  });
+
+export const regenerateParticipantToken = (
+  token: string,
+  participantId: string,
+) =>
+  apiRequest<{ participantToken: string }>(
+    `/api/manage/participants/${participantId}/token`,
+    { method: 'POST', token },
+  );
+
 // Participante
 
 export const leaveRoom = (token: string) =>
@@ -91,3 +113,15 @@ export const getWishlistDownloadUrl = (token: string, participantId: string) =>
     `/api/wishlists/${participantId}/file`,
     { token },
   );
+
+// Sorteo (participante): solo la asignación propia.
+
+export const getAssignment = (token: string) =>
+  apiRequest<Assignment>('/api/me/assignment', { token });
+
+export const markAssignmentSeen = (token: string, round: number) =>
+  apiRequest<void>('/api/me/assignment/seen', {
+    method: 'POST',
+    token,
+    body: { round },
+  });

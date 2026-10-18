@@ -173,6 +173,83 @@ export const t = {
     },
   },
 
+  draw: {
+    // Participante
+    doneTitle: '¡Ya se ha hecho el sorteo!',
+    doneBody: (name: string) =>
+      `${name}, tu amigo invisible te está esperando. Solo tú lo verás.`,
+    discover: 'Descubrir mi amigo invisible',
+    closedNote: 'La sala está cerrada: ya no puede entrar nadie más.',
+    repeatedStrong: 'El organizador ha repetido el sorteo.',
+    repeated:
+      'Tu resultado anterior ya no vale: si ya habías comprado algo, guárdalo por si te vuelve a tocar la misma persona.',
+    newTitle: 'Tienes un nuevo amigo invisible',
+    newBody: (name: string) =>
+      `${name}, descubre a quién te toca ahora. Solo tú lo verás.`,
+    discoverNew: 'Descubrir mi nuevo amigo invisible',
+    sameLinkTitle: 'Tu enlace personal sigue siendo el mismo',
+    sameLinkBody:
+      'No tienes que guardar nada nuevo. Con el mismo enlace verás tu nuevo resultado.',
+    live: 'Sorteo en directo',
+    spinning: 'Sorteando…',
+    almost: (name: string) => `${name}, ya casi tienes a tu amigo invisible.`,
+    soon: 'Tu resultado aparecerá en unos segundos.',
+    skip: 'Saltar animación',
+    resultTag: 'Tu resultado',
+    resultTitle: (name: string) => `${name}, tu amigo invisible es`,
+    resultAnnounce: (name: string) => `Tu amigo invisible es ${name}.`,
+    noWishlist: (name: string) =>
+      `${name} todavía no ha añadido su lista de deseos.`,
+    onlyFirstTime:
+      'La ruleta solo se muestra la primera vez. Después verás directamente tu resultado.',
+    // Organizador
+    noSolutionStrong: 'No hay solución.',
+    noSolution:
+      'Con 3 participantes y una pareja el sorteo es imposible. Quita la pareja, desactiva la regla o espera a más gente.',
+    tooFew: 'Hacen falta al menos 3 participantes para sortear.',
+    drawButton: 'Sortear',
+    drawing: 'Sorteando…',
+    seenTitle: 'Resultados vistos',
+    seenOf: (total: number) => `de ${total}`,
+    seenProgress: (seen: number, total: number) =>
+      `${seen} de ${total} han visto su resultado`,
+    more: 'Más',
+    moreLabel: 'Ver quién ha visto su resultado',
+    seenHint:
+      'Con «Más» ves quién ha abierto su resultado, nunca qué les ha tocado.',
+    seenDialogHint:
+      'Ves quién ha abierto su resultado. Nunca ves a quién le ha tocado cada persona.',
+    seenGroup: (n: number) => `Han visto (${n})`,
+    pendingGroup: (n: number) => `Pendientes (${n})`,
+    seenState: 'Visto',
+    pendingState: 'Pendiente',
+    repeatNote: (n: number) =>
+      n === 0
+        ? 'Todavía nadie ha visto su resultado.'
+        : n === 1
+          ? 'Antes de repetir se avisará: 1 persona ya ha visto su resultado.'
+          : `Antes de repetir se avisará: ${n} personas ya han visto su resultado.`,
+    repeat: 'Repetir sorteo',
+    repeatTitle: '¿Repetir el sorteo?',
+    repeatWarning: (n: number, total: number) =>
+      `${n} de ${total} personas ya han visto su resultado. Si repites, su amigo invisible cambiará.`,
+    repeatBody:
+      'Se hará un sorteo nuevo con las mismas personas y se borrará el anterior. Todos recibirán un aviso al momento y lo verán con su mismo enlace personal.',
+    repeatClosed: 'La sala sigue cerrada: no podrá entrar nadie más.',
+    // Regenerar enlace
+    regenerate: 'Regenerar enlace personal',
+    regenerateHint: 'El enlace actual dejará de funcionar.',
+    regenerateTitle: (name: string) => `¿Regenerar el enlace de ${name}?`,
+    regenerateBody: (name: string) =>
+      `El enlace actual dejará de funcionar y se creará uno nuevo. Tendrás que enviárselo tú a ${name}.`,
+    regenerateConfirm: 'Regenerar enlace',
+    newLinkTitle: (name: string) => `Nuevo enlace de ${name}`,
+    newLinkBody: 'El enlace anterior ya no funciona.',
+    newLinkOnceStrong: 'Se muestra una sola vez.',
+    newLinkOnce: (name: string) => `Cópialo y envíaselo a ${name} ahora.`,
+    done: 'Hecho',
+  },
+
   organizer: {
     title: 'Tu sala',
     inviteTitle: 'Enlace de invitación',
@@ -244,6 +321,9 @@ export const t = {
     FILE_TOO_LARGE: 'El archivo pesa más de 5 MB.',
     UNSUPPORTED_FILE_TYPE: 'Solo se admiten PDF, JPEG, PNG o WebP.',
     FILE_REQUIRED: 'Elige un archivo.',
+    NO_SOLUTION: 'Con estas parejas el sorteo no tiene solución.',
+    TOO_FEW_PARTICIPANTS: 'Hacen falta al menos 3 participantes para sortear.',
+    NOT_DRAWN: 'Todavía no se ha hecho el sorteo.',
     default: 'Algo ha fallado. Inténtalo de nuevo.',
   } as Record<string, string>,
 } as const;

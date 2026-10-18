@@ -10,8 +10,12 @@ const avatarVariants = cva(
     variants: {
       variant: {
         default: 'bg-muted',
-        // Miembro de una pareja (Fase 3).
+        // Miembro de una pareja.
         pair: 'border-2 border-primary bg-card',
+        // Ya ha visto su resultado (con un icono de check dentro).
+        seen: 'bg-success text-success-foreground',
+        // Aún no lo ha visto: círculo discontinuo.
+        pending: 'border-2 border-dashed border-muted-foreground bg-card',
       },
     },
     defaultVariants: { variant: 'default' },
