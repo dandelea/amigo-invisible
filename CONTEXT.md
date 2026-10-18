@@ -4,12 +4,12 @@ Resumen para traspasos entre agentes. La fuente de verdad es [`Prompt_inicial_Am
 
 ## Fase actual
 
-**Fase 4a (herramientas): terminada el 18 de octubre de 2026, pendiente de revisión del usuario.** Siguiente: **Fase 4b, backend del sorteo**, con el plan de abajo.
+**Fase 4b (backend del sorteo): terminada el 18 de octubre de 2026, pendiente de revisión del usuario.** Siguiente: **Fase 4c, frontend del sorteo**, con el plan de abajo.
 
 ## Fase 4: plan confirmado
 
 - **4a, herramientas** (hecha; resumen abajo): ESLint, Prettier, Husky, lint-staged y `.vscode/`, todo pedido por el usuario.
-- **4b, backend del sorteo** (pendiente):
+- **4b, backend del sorteo** (hecha; resumen abajo):
   - tabla `assignments` (`ON DELETE CASCADE`) y contador de ronda en la sala;
   - `POST /api/manage/draw`, idempotente, en una transacción con la sala bloqueada, usando `checkDrawFeasibility` (409 `NO_SOLUTION` o `TOO_FEW_PARTICIPANTS`);
   - `POST /api/manage/redraw`: mismos participantes, reinicia los vistos y avisa;
@@ -27,6 +27,43 @@ Resumen para traspasos entre agentes. La fuente de verdad es [`Prompt_inicial_Am
   - la asignación se obtiene por HTTP con el token del participante y el socket solo avisa; el prompt inicial está actualizado;
   - ESLint sustituye a oxlint;
   - Prettier con un estilo común: comillas simples, comas finales y punto y coma.
+
+## Fase 4b: resumen
+
+### Hecho
+
+- **Esquema** (migración `drizzle/0002_sorteo.sql`):
+  - `assignments`, con clave primaria en quien regala, `UNIQUE` en quien recibe, `CHECK` de que nadie se regala a sí mismo y `ON DELETE CASCADE`;
+  - `rooms.draw_round`, el número de sorteos hechos.
+- **`DrawService`** (`src/draw/draw.service.ts`), siempre con la sala bloqueada:
+  - `draw`, idempotente: si ya está sorteada devuelve la ronda sin volver a sortear;
+  - `redraw`: borra el resultado anterior, vuelve a sortear, sube la ronda y reinicia los vistos;
+  - `regenerateToken`: cambia el hash, cierra los sockets y devuelve el nuevo token una sola vez;
+  - `assignmentOf`: la asignación propia, con la lista de deseos de la persona;
+  - `markSeen(round)`: solo cuenta la primera vez y si la ronda es la actual.
+  - Usa `checkDrawFeasibility` y `drawCycle` de la Fase 1.
+- **Endpoints**:
+  - `POST /api/manage/draw`, `/redraw` y `/participants/:id/token`, en `OrganizerController`;
+  - `GET /api/me/assignment` y `POST /api/me/assignment/seen`, en `AssignmentController`. No hay ninguna ruta con id de participante.
+- **Vistas**:
+  - `/api/manage` añade `draw` (ronda, viabilidad, contador y lista de vistos con solo nombre y estado);
+  - `/api/me` añade `draw` (ronda y si lo ha visto).
+- **Errores nuevos**: `NO_SOLUTION` y `TOO_FEW_PARTICIPANTS` (409, mismo código que `checkDrawFeasibility`) y `NOT_DRAWN` (409).
+- **Tests**: 18 de integración nuevos, 126 en total, más 65 unitarios.
+  - Cubren: ciclo único y sala cerrada; regla de pareja; «No hay solución» antes de sortear; mínimo de 3; diez sorteos simultáneos que sortean una sola vez; sorteo mientras entran (todos los presentes tienen asignación); contador y lista de vistos con solo `name` y `seen`; «visto» de una ronda antigua que no cuenta; repetir (también varias veces a la vez); regenerar (el enlace viejo da 404, el nuevo ve lo mismo y el socket se cierra); otra sala da 404; secreto (ni el organizador ni nadie recibe asignaciones ajenas, y cada uno recibe solo la suya); avisos del socket sin datos; cascada al borrar la sala.
+  - Prueba de mutación: si el organizador recibe un dato de asignación, fallan 2 tests; si el sorteo deja de ser idempotente, falla 1.
+- **Prueba real** contra la base de datos de desarrollo migrada: sortear (dos veces, idempotente), asignación, visto, contador del organizador y repetir. Ningún token en el log.
+- README (endpoints, eventos y decisiones) y `docs/openapi.json` actualizados (21 rutas).
+
+### Decisiones
+
+- Sortear dos veces no es un error: devuelve 200 con la ronda actual, para que un doble clic no rompa nada.
+- «Visto» lleva la ronda, para evitar la carrera con «Repetir sorteo».
+- Regenerar el enlace se permite antes y después del sorteo, como dice el prompt. El organizador conoce el nuevo enlace (riesgo aceptado).
+
+### Pendiente
+
+- Fase 4c (frontend del sorteo).
 
 ## Fase 4a: resumen
 

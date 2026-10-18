@@ -5,6 +5,7 @@ import {
   ArrayMinSize,
   IsArray,
   IsBoolean,
+  IsInt,
   IsNumber,
   IsOptional,
   IsString,
@@ -279,6 +280,68 @@ export class PairDto {
   participantIds: string[];
 }
 
+export class FeasibilityDto {
+  @ApiProperty({ type: Boolean })
+  ok: boolean;
+
+  @ApiProperty({
+    type: String,
+    nullable: true,
+    enum: ['NO_SOLUTION', 'TOO_FEW_PARTICIPANTS'],
+    description: 'Motivo por el que no se puede sortear, o null.',
+  })
+  code: 'NO_SOLUTION' | 'TOO_FEW_PARTICIPANTS' | null;
+}
+
+// Solo nombre y estado: nunca a quién le ha tocado cada persona.
+export class SeenEntryDto {
+  @ApiProperty({ type: String, example: 'Ana' })
+  name: string;
+
+  @ApiProperty({ type: Boolean, description: 'Si ya ha visto su resultado.' })
+  seen: boolean;
+}
+
+export class OrganizerDrawDto {
+  @ApiProperty({
+    type: Number,
+    example: 1,
+    description: 'Sorteos hechos (0 antes del primero).',
+  })
+  round: number;
+
+  @ApiProperty({
+    type: FeasibilityDto,
+    description: 'Si se puede sortear ahora (solo relevante antes del sorteo).',
+  })
+  feasibility: FeasibilityDto;
+
+  @ApiProperty({ type: Number, example: 4 })
+  seenCount: number;
+
+  @ApiProperty({ type: Number, example: 6 })
+  total: number;
+
+  @ApiProperty({
+    type: [SeenEntryDto],
+    description:
+      'Quién ha visto su resultado y quién no. Vacío antes del sorteo.',
+  })
+  seen: SeenEntryDto[];
+}
+
+export class ParticipantDrawDto {
+  @ApiProperty({ type: Number, example: 1 })
+  round: number;
+
+  @ApiProperty({
+    type: Boolean,
+    description:
+      'Si ya ha visto su resultado en esta ronda (la ruleta solo se muestra la primera vez).',
+  })
+  seen: boolean;
+}
+
 export class ParticipantViewDto {
   @ApiProperty({ type: RoomDto })
   room: RoomDto;
@@ -298,6 +361,9 @@ export class ParticipantViewDto {
 
   @ApiProperty({ type: Number, example: MAX_PARTICIPANTS })
   maxParticipants: number;
+
+  @ApiProperty({ type: ParticipantDrawDto })
+  draw: ParticipantDrawDto;
 }
 
 export class OrganizerViewDto {
@@ -318,6 +384,9 @@ export class OrganizerViewDto {
 
   @ApiProperty({ type: Number, example: MAX_PARTICIPANTS })
   maxParticipants: number;
+
+  @ApiProperty({ type: OrganizerDrawDto })
+  draw: OrganizerDrawDto;
 }
 
 // Edición de los datos de la sala. Solo se cambian los campos enviados;
@@ -415,4 +484,40 @@ export class DownloadUrlDto {
 
   @ApiProperty({ type: Number, example: 300 })
   expiresInSeconds: number;
+}
+
+export class AssignmentDto {
+  @ApiProperty({
+    type: ParticipantWithWishlistDto,
+    description: 'La persona a la que le toca regalar, con su lista de deseos.',
+  })
+  receiver: ParticipantWithWishlistDto;
+
+  @ApiProperty({ type: Number, example: 1 })
+  round: number;
+
+  @ApiProperty({ type: Boolean })
+  seen: boolean;
+}
+
+export class NewParticipantTokenDto {
+  @ApiProperty({
+    type: String,
+    description:
+      'Nuevo token del enlace personal: /p#<participantToken>. Se devuelve solo esta vez; el anterior deja de funcionar.',
+  })
+  participantToken: string;
+}
+
+export class MarkSeenDto {
+  @ApiProperty({
+    type: Number,
+    minimum: 1,
+    example: 1,
+    description:
+      'Ronda cuyo resultado se ha visto. Si ya no es la actual, no cuenta.',
+  })
+  @IsInt({ message: 'Indica la ronda del sorteo' })
+  @Min(1, { message: 'Indica la ronda del sorteo' })
+  round: number;
 }

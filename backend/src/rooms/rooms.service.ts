@@ -28,13 +28,14 @@ import {
   hashToken,
   INVITE_CODE_PATTERN,
 } from '../common/tokens.js';
-import { MAX_PARTICIPANTS } from '../draw/draw.js';
+import { checkDrawFeasibility, MAX_PARTICIPANTS } from '../draw/draw.js';
 import { RealtimeGateway } from '../realtime/realtime.gateway.js';
 import type {
   CreateRoomDto,
   CreateRoomResponseDto,
   InvitationDto,
   JoinRoomResponseDto,
+  OrganizerDrawDto,
   OrganizerViewDto,
   PairDto,
   ParticipantDto,
@@ -182,6 +183,7 @@ export class RoomsService {
       })),
       pairs: pairRows.map(toPairDto),
       maxParticipants: MAX_PARTICIPANTS,
+      draw: { round: room.drawRound, seen: me.seenAt !== null },
     };
   }
 
@@ -196,6 +198,7 @@ export class RoomsService {
       participants: list.map(toParticipantDto),
       pairs: pairRows.map(toPairDto),
       maxParticipants: MAX_PARTICIPANTS,
+      draw: organizerDraw(room, list, pairRows),
     };
   }
 
@@ -241,6 +244,41 @@ export function toRoomDto(room: Room): RoomDto {
 
 function toParticipantDto(p: Participant): ParticipantDto {
   return { id: p.id, name: p.name };
+}
+
+// Estado del sorteo para el organizador. De cada participante solo sale su
+// nombre y si ha visto su resultado: nunca a quién le ha tocado.
+function organizerDraw(
+  room: Room,
+  list: Participant[],
+  pairRows: Pair[],
+): OrganizerDrawDto {
+  const feasibility = checkDrawFeasibility({
+    participantIds: list.map((p) => p.id),
+    pairs: pairRows.map((p) => [p.participantAId, p.participantBId] as const),
+    pairRuleEnabled: room.pairRuleEnabled,
+  });
+  const drawn = room.status === 'drawn';
+  const seen = drawn
+    ? list.map((p) => ({ name: p.name, seen: p.seenAt !== null }))
+    : [];
+  return {
+    round: room.drawRound,
+    // INVALID_INPUT y TOO_MANY_PARTICIPANTS no pueden darse aquí: la base de
+    // datos garantiza parejas válidas y el tope de 30.
+    feasibility: feasibility.ok
+      ? { ok: true, code: null }
+      : {
+          ok: false,
+          code:
+            feasibility.code === 'NO_SOLUTION'
+              ? 'NO_SOLUTION'
+              : 'TOO_FEW_PARTICIPANTS',
+        },
+    seenCount: seen.filter((s) => s.seen).length,
+    total: list.length,
+    seen,
+  };
 }
 
 export function toPairDto(p: Pair): PairDto {

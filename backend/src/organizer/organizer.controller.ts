@@ -28,13 +28,16 @@ import { UuidParam } from '../common/uuid-param.js';
 import type { Room } from '../db/schema.js';
 import {
   CreatePairDto,
+  NewParticipantTokenDto,
   PairDto,
+  ParticipantDrawDto,
   RoomDto,
   SetPairRuleDto,
   UpdateRoomDto,
 } from '../rooms/dto.js';
 import { MembershipService } from '../rooms/membership.service.js';
 import { TOKEN_AUTH } from '../setup.js';
+import { DrawService } from '../draw/draw.service.js';
 import { OrganizerService } from './organizer.service.js';
 
 const errors = { type: ErrorResponseDto };
@@ -53,6 +56,7 @@ export class OrganizerController {
   constructor(
     private readonly organizer: OrganizerService,
     private readonly membership: MembershipService,
+    private readonly draws: DrawService,
   ) {}
 
   @Patch('room')
@@ -123,5 +127,49 @@ export class OrganizerController {
     @Param('participantId', UuidParam) participantId: string,
   ): Promise<void> {
     return this.membership.remove(room.id, participantId);
+  }
+
+  @Post('draw')
+  @HttpCode(200)
+  @ApiOperation({
+    summary: 'Hace el sorteo y cierra la sala',
+    description:
+      'Idempotente: si la sala ya está sorteada no vuelve a sortear y devuelve la ronda actual. Avisa a la sala por el socket (sin datos).',
+  })
+  @ApiOkResponse({ type: ParticipantDrawDto })
+  @ApiConflictResponse({
+    ...errors,
+    description: 'NO_SOLUTION o TOO_FEW_PARTICIPANTS',
+  })
+  draw(@CurrentRoom() room: Room): Promise<ParticipantDrawDto> {
+    return this.draws.draw(room.id);
+  }
+
+  @Post('redraw')
+  @HttpCode(200)
+  @ApiOperation({
+    summary: 'Repite el sorteo con los mismos participantes',
+    description:
+      'Borra el resultado anterior, reinicia quién lo ha visto y avisa a la sala. La sala sigue cerrada.',
+  })
+  @ApiOkResponse({ type: ParticipantDrawDto })
+  @ApiConflictResponse({ ...errors, description: 'NOT_DRAWN' })
+  redraw(@CurrentRoom() room: Room): Promise<ParticipantDrawDto> {
+    return this.draws.redraw(room.id);
+  }
+
+  @Post('participants/:participantId/token')
+  @HttpCode(200)
+  @ApiOperation({
+    summary: 'Regenera el enlace personal de un participante',
+    description:
+      'Antes o después del sorteo. El enlace anterior deja de funcionar; el nuevo se devuelve solo esta vez.',
+  })
+  @ApiOkResponse({ type: NewParticipantTokenDto })
+  regenerateToken(
+    @CurrentRoom() room: Room,
+    @Param('participantId', UuidParam) participantId: string,
+  ): Promise<NewParticipantTokenDto> {
+    return this.draws.regenerateToken(room.id, participantId);
   }
 }

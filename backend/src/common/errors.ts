@@ -32,6 +32,23 @@ export const nameTaken = () =>
     message: 'Ya hay alguien con ese nombre en la sala',
   });
 
+// Sorteo imposible (3 participantes con una pareja y la regla activa) o con
+// menos de 3 participantes. El código coincide con el de checkDrawFeasibility.
+export const cannotDraw = (code: string) =>
+  new ConflictException({
+    error: code,
+    message:
+      code === 'NO_SOLUTION'
+        ? 'Con estas parejas el sorteo no tiene solución'
+        : 'Hacen falta al menos 3 participantes',
+  });
+
+export const notDrawn = () =>
+  new ConflictException({
+    error: 'NOT_DRAWN',
+    message: 'Todavía no se ha hecho el sorteo',
+  });
+
 export const alreadyPaired = () =>
   new ConflictException({
     error: 'ALREADY_PAIRED',

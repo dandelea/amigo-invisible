@@ -5,6 +5,8 @@ import { AuthService } from './auth/auth.service.js';
 import { HttpThrottlerGuard, rateLimitOptions } from './common/rate-limit.js';
 import { ENV, EnvModule } from './config/env.module.js';
 import { DbModule } from './db/db.module.js';
+import { AssignmentController } from './draw/assignment.controller.js';
+import { DrawService } from './draw/draw.service.js';
 import { HealthController } from './health/health.controller.js';
 import { RealtimeGateway } from './realtime/realtime.gateway.js';
 import { OrganizerController } from './organizer/organizer.controller.js';
@@ -30,6 +32,7 @@ import { WishlistsService } from './wishlists/wishlists.service.js';
     RoomsController,
     OrganizerController,
     WishlistsController,
+    AssignmentController,
   ],
   providers: [
     AuthService,
@@ -39,6 +42,7 @@ import { WishlistsService } from './wishlists/wishlists.service.js';
     OrganizerService,
     WishlistsService,
     StorageService,
+    DrawService,
     { provide: APP_GUARD, useClass: HttpThrottlerGuard },
   ],
 })

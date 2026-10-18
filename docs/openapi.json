@@ -751,6 +751,189 @@
         ]
       }
     },
+    "/api/manage/draw": {
+      "post": {
+        "description": "Idempotente: si la sala ya está sorteada no vuelve a sortear y devuelve la ronda actual. Avisa a la sala por el socket (sin datos).",
+        "operationId": "OrganizerController_draw",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ParticipantDrawDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "NOT_FOUND",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "NO_SOLUTION o TOO_FEW_PARTICIPANTS",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "TOO_MANY_REQUESTS",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "token": []
+          }
+        ],
+        "summary": "Hace el sorteo y cierra la sala",
+        "tags": [
+          "organizador"
+        ]
+      }
+    },
+    "/api/manage/redraw": {
+      "post": {
+        "description": "Borra el resultado anterior, reinicia quién lo ha visto y avisa a la sala. La sala sigue cerrada.",
+        "operationId": "OrganizerController_redraw",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ParticipantDrawDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "NOT_FOUND",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "NOT_DRAWN",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "TOO_MANY_REQUESTS",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "token": []
+          }
+        ],
+        "summary": "Repite el sorteo con los mismos participantes",
+        "tags": [
+          "organizador"
+        ]
+      }
+    },
+    "/api/manage/participants/{participantId}/token": {
+      "post": {
+        "description": "Antes o después del sorteo. El enlace anterior deja de funcionar; el nuevo se devuelve solo esta vez.",
+        "operationId": "OrganizerController_regenerateToken",
+        "parameters": [
+          {
+            "name": "participantId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NewParticipantTokenDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "NOT_FOUND",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "ROOM_CLOSED: la sala ya se ha sorteado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "TOO_MANY_REQUESTS",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "token": []
+          }
+        ],
+        "summary": "Regenera el enlace personal de un participante",
+        "tags": [
+          "organizador"
+        ]
+      }
+    },
     "/api/me/wishlist/link": {
       "put": {
         "description": "Reemplaza el elemento anterior (y borra su archivo, si lo había).",
@@ -1040,6 +1223,105 @@
         "summary": "URL de descarga del archivo de deseos de alguien de la sala",
         "tags": [
           "lista de deseos"
+        ]
+      }
+    },
+    "/api/me/assignment": {
+      "get": {
+        "description": "Devuelve solo la asignación propia, con la lista de deseos de la persona.",
+        "operationId": "AssignmentController_assignment",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssignmentDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "NOT_FOUND (token inválido)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "NOT_DRAWN",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "token": []
+          }
+        ],
+        "summary": "A quién le toca regalar al participante",
+        "tags": [
+          "sorteo"
+        ]
+      }
+    },
+    "/api/me/assignment/seen": {
+      "post": {
+        "description": "Se llama al terminar la ruleta o al abrir el resultado. Solo cuenta si la ronda indicada es la actual.",
+        "operationId": "AssignmentController_markSeen",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MarkSeenDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": ""
+          },
+          "404": {
+            "description": "NOT_FOUND (token inválido)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "NOT_DRAWN",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "token": []
+          }
+        ],
+        "summary": "Marca el resultado como visto",
+        "tags": [
+          "sorteo"
         ]
       }
     }
@@ -1398,6 +1680,23 @@
           "participantIds"
         ]
       },
+      "ParticipantDrawDto": {
+        "type": "object",
+        "properties": {
+          "round": {
+            "type": "number",
+            "example": 1
+          },
+          "seen": {
+            "type": "boolean",
+            "description": "Si ya ha visto su resultado en esta ronda (la ruleta solo se muestra la primera vez)."
+          }
+        },
+        "required": [
+          "round",
+          "seen"
+        ]
+      },
       "ParticipantViewDto": {
         "type": "object",
         "properties": {
@@ -1423,6 +1722,9 @@
           "maxParticipants": {
             "type": "number",
             "example": 30
+          },
+          "draw": {
+            "$ref": "#/components/schemas/ParticipantDrawDto"
           }
         },
         "required": [
@@ -1430,7 +1732,86 @@
           "me",
           "participants",
           "pairs",
-          "maxParticipants"
+          "maxParticipants",
+          "draw"
+        ]
+      },
+      "FeasibilityDto": {
+        "type": "object",
+        "properties": {
+          "ok": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "string",
+            "nullable": true,
+            "enum": [
+              "NO_SOLUTION",
+              "TOO_FEW_PARTICIPANTS"
+            ],
+            "description": "Motivo por el que no se puede sortear, o null."
+          }
+        },
+        "required": [
+          "ok",
+          "code"
+        ]
+      },
+      "SeenEntryDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "Ana"
+          },
+          "seen": {
+            "type": "boolean",
+            "description": "Si ya ha visto su resultado."
+          }
+        },
+        "required": [
+          "name",
+          "seen"
+        ]
+      },
+      "OrganizerDrawDto": {
+        "type": "object",
+        "properties": {
+          "round": {
+            "type": "number",
+            "example": 1,
+            "description": "Sorteos hechos (0 antes del primero)."
+          },
+          "feasibility": {
+            "description": "Si se puede sortear ahora (solo relevante antes del sorteo).",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/FeasibilityDto"
+              }
+            ]
+          },
+          "seenCount": {
+            "type": "number",
+            "example": 4
+          },
+          "total": {
+            "type": "number",
+            "example": 6
+          },
+          "seen": {
+            "description": "Quién ha visto su resultado y quién no. Vacío antes del sorteo.",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SeenEntryDto"
+            }
+          }
+        },
+        "required": [
+          "round",
+          "feasibility",
+          "seenCount",
+          "total",
+          "seen"
         ]
       },
       "OrganizerViewDto": {
@@ -1458,6 +1839,9 @@
           "maxParticipants": {
             "type": "number",
             "example": 30
+          },
+          "draw": {
+            "$ref": "#/components/schemas/OrganizerDrawDto"
           }
         },
         "required": [
@@ -1465,7 +1849,8 @@
           "inviteCode",
           "participants",
           "pairs",
-          "maxParticipants"
+          "maxParticipants",
+          "draw"
         ]
       },
       "UpdateRoomDto": {
@@ -1519,6 +1904,18 @@
           "participantIds"
         ]
       },
+      "NewParticipantTokenDto": {
+        "type": "object",
+        "properties": {
+          "participantToken": {
+            "type": "string",
+            "description": "Nuevo token del enlace personal: /p#<participantToken>. Se devuelve solo esta vez; el anterior deja de funcionar."
+          }
+        },
+        "required": [
+          "participantToken"
+        ]
+      },
       "WishlistLinkDto": {
         "type": "object",
         "properties": {
@@ -1548,6 +1945,45 @@
         "required": [
           "url",
           "expiresInSeconds"
+        ]
+      },
+      "AssignmentDto": {
+        "type": "object",
+        "properties": {
+          "receiver": {
+            "description": "La persona a la que le toca regalar, con su lista de deseos.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ParticipantWithWishlistDto"
+              }
+            ]
+          },
+          "round": {
+            "type": "number",
+            "example": 1
+          },
+          "seen": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "receiver",
+          "round",
+          "seen"
+        ]
+      },
+      "MarkSeenDto": {
+        "type": "object",
+        "properties": {
+          "round": {
+            "type": "number",
+            "minimum": 1,
+            "example": 1,
+            "description": "Ronda cuyo resultado se ha visto. Si ya no es la actual, no cuenta."
+          }
+        },
+        "required": [
+          "round"
         ]
       }
     }

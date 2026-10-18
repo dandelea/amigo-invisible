@@ -14,7 +14,6 @@ import {
 
 // Esquema de base de datos. Todo cuelga de la sala con ON DELETE CASCADE,
 // para que el script de borrado manual elimine una sala con todo lo suyo.
-// Las asignaciones del sorteo llegan en la Fase 4.
 
 export const roomStatus = pgEnum('room_status', ['open', 'drawn']);
 
@@ -26,6 +25,8 @@ export const rooms = pgTable('rooms', {
   budgetCents: integer('budget_cents'),
   status: roomStatus('status').notNull().default('open'),
   pairRuleEnabled: boolean('pair_rule_enabled').notNull().default(true),
+  // Número de sorteos hechos: 0 antes del primero; sube al repetir.
+  drawRound: integer('draw_round').notNull().default(0),
   // Código aleatorio del enlace de invitación (no es el id interno).
   inviteCode: varchar('invite_code', { length: 32 }).notNull().unique(),
   // SHA-256 en hexadecimal del token de gestión. El token nunca se guarda.
@@ -126,6 +127,28 @@ export const wishlists = pgTable(
       'wishlists_shape',
       sql`(${t.kind} = 'link' and ${t.url} is not null and ${t.fileKey} is null) or (${t.kind} = 'file' and ${t.fileKey} is not null and ${t.url} is null)`,
     ),
+  ],
+);
+
+// Resultado del sorteo: a quién regala cada participante. Cada uno regala y
+// recibe exactamente una vez (clave primaria y restricción única). Nunca sale
+// del backend salvo la fila propia de cada participante.
+export const assignments = pgTable(
+  'assignments',
+  {
+    giverId: uuid('giver_id')
+      .primaryKey()
+      .references(() => participants.id, { onDelete: 'cascade' }),
+    receiverId: uuid('receiver_id')
+      .notNull()
+      .references(() => participants.id, { onDelete: 'cascade' }),
+    roomId: uuid('room_id')
+      .notNull()
+      .references(() => rooms.id, { onDelete: 'cascade' }),
+  },
+  (t) => [
+    unique('assignments_receiver_key').on(t.receiverId),
+    check('assignments_not_self', sql`${t.giverId} <> ${t.receiverId}`),
   ],
 );
 
