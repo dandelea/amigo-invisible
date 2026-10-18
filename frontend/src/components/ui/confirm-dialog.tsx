@@ -1,9 +1,9 @@
-import { useState, type ReactNode } from 'react'
-import { ApiError } from '@/api/client'
-import { errorText, t } from '@/texts/es'
-import { Alert } from './alert'
-import { Button } from './button'
-import { ResponsiveDialog } from './responsive-dialog'
+import { useState, type ReactNode } from 'react';
+import { ApiError } from '@/api/client';
+import { errorText, t } from '@/texts/es';
+import { Alert } from './alert';
+import { Button } from './button';
+import { ResponsiveDialog } from './responsive-dialog';
 
 // Confirmación de una acción (salir, expulsar, repetir sorteo…): título,
 // texto, aviso opcional y dos botones. Mientras la acción está en curso los
@@ -19,31 +19,31 @@ export function ConfirmDialog({
   destructive,
   onConfirm,
 }: {
-  open: boolean
-  onOpenChange: (open: boolean) => void
-  title: string
-  body: ReactNode
-  warning?: ReactNode
-  confirmLabel: string
-  cancelLabel?: string
-  destructive?: boolean
-  onConfirm: () => Promise<void>
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  title: string;
+  body: ReactNode;
+  warning?: ReactNode;
+  confirmLabel: string;
+  cancelLabel?: string;
+  destructive?: boolean;
+  onConfirm: () => Promise<void>;
 }) {
-  const [busy, setBusy] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   async function confirm() {
-    setBusy(true)
-    setError(null)
+    setBusy(true);
+    setError(null);
     try {
-      await onConfirm()
-      onOpenChange(false)
+      await onConfirm();
+      onOpenChange(false);
     } catch (e) {
       setError(
         e instanceof ApiError ? errorText(e.code, e.message) : t.errors.default,
-      )
+      );
     } finally {
-      setBusy(false)
+      setBusy(false);
     }
   }
 
@@ -51,9 +51,9 @@ export function ConfirmDialog({
     <ResponsiveDialog
       open={open}
       onOpenChange={(next) => {
-        if (busy) return
-        setError(null)
-        onOpenChange(next)
+        if (busy) return;
+        setError(null);
+        onOpenChange(next);
       }}
       title={title}
       showClose={false}
@@ -73,5 +73,5 @@ export function ConfirmDialog({
         {cancelLabel}
       </Button>
     </ResponsiveDialog>
-  )
+  );
 }

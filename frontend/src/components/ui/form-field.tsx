@@ -1,16 +1,16 @@
-import { useId, type ComponentProps, type ReactNode } from 'react'
-import { CircleAlert } from 'lucide-react'
-import { cn } from '@/lib/utils'
-import { Pill } from './pill'
+import { useId, type ComponentProps, type ReactNode } from 'react';
+import { CircleAlert } from 'lucide-react';
+import { cn } from '@/lib/utils';
+import { Pill } from './pill';
 
 interface FormFieldProps extends Omit<ComponentProps<'input'>, 'id'> {
-  label: string
-  hint?: ReactNode
-  error?: ReactNode
+  label: string;
+  hint?: ReactNode;
+  error?: ReactNode;
   // Muestra la etiqueta «Opcional» junto al título.
-  optionalLabel?: string
+  optionalLabel?: string;
   // Muestra el contador «n/max» con la longitud del valor actual.
-  showCounter?: boolean
+  showCounter?: boolean;
 }
 
 // Campo de formulario de los mockups: etiqueta, contador u «Opcional»,
@@ -26,13 +26,13 @@ export function FormField({
   maxLength,
   ...inputProps
 }: FormFieldProps) {
-  const id = useId()
-  const hintId = `${id}-hint`
-  const errorId = `${id}-error`
+  const id = useId();
+  const hintId = `${id}-hint`;
+  const errorId = `${id}-error`;
   const describedBy =
     [error ? errorId : null, hint ? hintId : null].filter(Boolean).join(' ') ||
-    undefined
-  const length = typeof value === 'string' ? Array.from(value).length : 0
+    undefined;
+  const length = typeof value === 'string' ? Array.from(value).length : 0;
 
   return (
     <div className={cn('flex flex-col gap-1.5', className)}>
@@ -40,7 +40,10 @@ export function FormField({
         <label htmlFor={id}>{label}</label>
         {optionalLabel && <Pill>{optionalLabel}</Pill>}
         {showCounter && maxLength && (
-          <span className="text-[13px] text-muted-foreground" aria-hidden="true">
+          <span
+            className="text-[13px] text-muted-foreground"
+            aria-hidden="true"
+          >
             {length}/{maxLength}
           </span>
         )}
@@ -73,5 +76,5 @@ export function FormField({
         </p>
       )}
     </div>
-  )
+  );
 }

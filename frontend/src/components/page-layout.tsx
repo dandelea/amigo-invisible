@@ -1,7 +1,7 @@
-import type { ReactNode } from 'react'
-import { Link } from 'react-router'
-import { t } from '@/texts/es'
-import { cn } from '@/lib/utils'
+import type { ReactNode } from 'react';
+import { Link } from 'react-router';
+import { t } from '@/texts/es';
+import { cn } from '@/lib/utils';
 
 // Contenedor de página: una columna en móvil y tablet (máximo 760 px) y
 // hasta 1040 px en ordenador, con la marca arriba como en los mockups.
@@ -9,8 +9,8 @@ export function PageLayout({
   children,
   className,
 }: {
-  children: ReactNode
-  className?: string
+  children: ReactNode;
+  className?: string;
 }) {
   return (
     <div className="min-h-svh">
@@ -28,7 +28,7 @@ export function PageLayout({
         {children}
       </main>
     </div>
-  )
+  );
 }
 
 // Sala en dos columnas en ordenador (1,1fr y 1fr, como los mockups de
@@ -41,17 +41,19 @@ export function TwoColumns({
   main,
   bottom,
 }: {
-  top: ReactNode
-  main: ReactNode
-  bottom?: ReactNode
+  top: ReactNode;
+  main: ReactNode;
+  bottom?: ReactNode;
 }) {
   return (
     <div className="flex flex-col gap-3.5 lg:grid lg:grid-cols-[1.1fr_1fr] lg:items-start lg:gap-6">
       <div className="contents lg:col-start-2 lg:row-start-1 lg:flex lg:flex-col lg:gap-3.5">
         <div className="order-1 flex flex-col gap-3.5">{top}</div>
-        {bottom && <div className="order-3 flex flex-col gap-3.5">{bottom}</div>}
+        {bottom && (
+          <div className="order-3 flex flex-col gap-3.5">{bottom}</div>
+        )}
       </div>
       <div className="order-2 lg:col-start-1 lg:row-start-1">{main}</div>
     </div>
-  )
+  );
 }

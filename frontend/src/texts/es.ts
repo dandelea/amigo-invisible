@@ -246,9 +246,9 @@ export const t = {
     FILE_REQUIRED: 'Elige un archivo.',
     default: 'Algo ha fallado. Inténtalo de nuevo.',
   } as Record<string, string>,
-} as const
+} as const;
 
 export function errorText(code: string, serverMessage?: string): string {
-  if (code === 'VALIDATION_ERROR' && serverMessage) return serverMessage
-  return t.errors[code] ?? t.errors.default
+  if (code === 'VALIDATION_ERROR' && serverMessage) return serverMessage;
+  return t.errors[code] ?? t.errors.default;
 }

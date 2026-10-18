@@ -1,6 +1,6 @@
-import type { ComponentProps } from 'react'
-import { cva, type VariantProps } from 'class-variance-authority'
-import { cn } from '@/lib/utils'
+import type { ComponentProps } from 'react';
+import { cva, type VariantProps } from 'class-variance-authority';
+import { cn } from '@/lib/utils';
 
 // Tarjeta de los mockups: radio de 12 px, borde suave y separación de 8 px.
 const cardVariants = cva('flex flex-col gap-2 rounded-xl border p-3.5', {
@@ -16,12 +16,14 @@ const cardVariants = cva('flex flex-col gap-2 rounded-xl border p-3.5', {
     },
   },
   defaultVariants: { variant: 'default' },
-})
+});
 
 export function Card({
   className,
   variant,
   ...props
 }: ComponentProps<'div'> & VariantProps<typeof cardVariants>) {
-  return <div className={cn(cardVariants({ variant }), className)} {...props} />
+  return (
+    <div className={cn(cardVariants({ variant }), className)} {...props} />
+  );
 }

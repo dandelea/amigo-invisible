@@ -1,6 +1,6 @@
-import type { ComponentProps } from 'react'
-import { cn } from '@/lib/utils'
-import { Button } from './button'
+import type { ComponentProps } from 'react';
+import { cn } from '@/lib/utils';
+import { Button } from './button';
 
 // Opción de un menú de acciones: título y una línea de explicación.
 export function ActionSheetItem({
@@ -10,9 +10,9 @@ export function ActionSheetItem({
   className,
   ...props
 }: Omit<ComponentProps<typeof Button>, 'children' | 'variant'> & {
-  title: string
-  description: string
-  destructive?: boolean
+  title: string;
+  description: string;
+  destructive?: boolean;
 }) {
   return (
     <Button
@@ -28,5 +28,5 @@ export function ActionSheetItem({
         {description}
       </span>
     </Button>
-  )
+  );
 }

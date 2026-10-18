@@ -1,5 +1,5 @@
-import type { ReactNode } from 'react'
-import { cn } from '@/lib/utils'
+import type { ReactNode } from 'react';
+import { cn } from '@/lib/utils';
 
 // Fila seleccionable con casilla (p. ej. para elegir las dos personas de una
 // pareja). La fila entera es la etiqueta, así que todo es pulsable.
@@ -10,11 +10,11 @@ export function SelectableOption({
   disabled,
   onChange,
 }: {
-  label: string
-  note?: ReactNode
-  checked: boolean
-  disabled?: boolean
-  onChange: (checked: boolean) => void
+  label: string;
+  note?: ReactNode;
+  checked: boolean;
+  disabled?: boolean;
+  onChange: (checked: boolean) => void;
 }) {
   return (
     <label
@@ -32,7 +32,9 @@ export function SelectableOption({
         onChange={(e) => onChange(e.target.checked)}
       />
       <span className="flex-1 font-bold break-words">{label}</span>
-      {note && <span className="text-[13px] text-muted-foreground">{note}</span>}
+      {note && (
+        <span className="text-[13px] text-muted-foreground">{note}</span>
+      )}
     </label>
-  )
+  );
 }

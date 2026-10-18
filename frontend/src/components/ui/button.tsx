@@ -1,7 +1,7 @@
-import * as React from "react"
-import { cva, type VariantProps } from "class-variance-authority"
-import { cn } from "cn"
-import { Slot } from "radix-ui"
+import * as React from 'react';
+import { cva, type VariantProps } from 'class-variance-authority';
+import { cn } from 'cn';
+import { Slot } from 'radix-ui';
 
 // Botón de los mockups: objetivos táctiles de 44 px (md) o 52 px (lg),
 // radio de 10 px y texto en semibold.
@@ -11,41 +11,41 @@ const buttonVariants = cva(
     variants: {
       variant: {
         primary:
-          "border-primary bg-primary text-primary-foreground hover:bg-primary/90 disabled:border-border disabled:bg-border disabled:text-muted-foreground",
+          'border-primary bg-primary text-primary-foreground hover:bg-primary/90 disabled:border-border disabled:bg-border disabled:text-muted-foreground',
         secondary:
-          "border-input bg-card text-foreground hover:bg-muted disabled:opacity-60",
+          'border-input bg-card text-foreground hover:bg-muted disabled:opacity-60',
         destructive:
-          "border-pair-border bg-card text-destructive hover:bg-accent disabled:opacity-60",
+          'border-pair-border bg-card text-destructive hover:bg-accent disabled:opacity-60',
       },
       size: {
-        md: "min-h-11 px-4 text-[15px]",
-        lg: "min-h-13 px-4 text-[17px]",
-        icon: "size-11 p-0",
+        md: 'min-h-11 px-4 text-[15px]',
+        lg: 'min-h-13 px-4 text-[17px]',
+        icon: 'size-11 p-0',
         // Más discreto (36 px) dentro de una fila, pero con un área invisible
         // alrededor para mantener el objetivo táctil de 44 px.
-        "icon-sm":
+        'icon-sm':
           "relative size-9 p-0 after:absolute after:-inset-1 after:content-[''] [&_svg:not([class*='size-'])]:size-[18px]",
       },
     },
     defaultVariants: {
-      variant: "secondary",
-      size: "md",
+      variant: 'secondary',
+      size: 'md',
     },
-  }
-)
+  },
+);
 
 function Button({
   className,
   variant,
   size,
   asChild = false,
-  type = "button",
+  type = 'button',
   ...props
-}: React.ComponentProps<"button"> &
+}: React.ComponentProps<'button'> &
   VariantProps<typeof buttonVariants> & {
-    asChild?: boolean
+    asChild?: boolean;
   }) {
-  const Comp = asChild ? Slot.Root : "button"
+  const Comp = asChild ? Slot.Root : 'button';
 
   return (
     <Comp
@@ -54,8 +54,8 @@ function Button({
       className={cn(buttonVariants({ variant, size, className }))}
       {...props}
     />
-  )
+  );
 }
 
 // eslint-disable-next-line react-refresh/only-export-components
-export { Button, buttonVariants }
+export { Button, buttonVariants };

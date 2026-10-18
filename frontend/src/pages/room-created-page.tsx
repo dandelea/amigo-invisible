@@ -1,27 +1,27 @@
-import { useState } from 'react'
-import { Link, Navigate, useLocation } from 'react-router'
-import type { CreateRoomResponse } from '@/api/types'
-import { CopyLinkBox } from '@/components/copy-link-box'
-import { EditRoomDialog } from '@/components/edit-room-dialog'
-import { PageLayout } from '@/components/page-layout'
-import { Alert } from '@/components/ui/alert'
-import { Button } from '@/components/ui/button'
-import { Card } from '@/components/ui/card'
-import { Pill } from '@/components/ui/pill'
-import { formatBudget, formatLongDate } from '@/lib/format'
-import { inviteUrl, managePath, manageUrl } from '@/lib/links'
-import { t } from '@/texts/es'
+import { useState } from 'react';
+import { Link, Navigate, useLocation } from 'react-router';
+import type { CreateRoomResponse } from '@/api/types';
+import { CopyLinkBox } from '@/components/copy-link-box';
+import { EditRoomDialog } from '@/components/edit-room-dialog';
+import { PageLayout } from '@/components/page-layout';
+import { Alert } from '@/components/ui/alert';
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
+import { Pill } from '@/components/ui/pill';
+import { formatBudget, formatLongDate } from '@/lib/format';
+import { inviteUrl, managePath, manageUrl } from '@/lib/links';
+import { t } from '@/texts/es';
 
 // Se llega aquí justo después de crear la sala. Los enlaces viajan en el
 // estado de la navegación (en memoria): si se recarga, se vuelve al inicio,
 // porque el enlace de gestión solo se muestra una vez.
 export function RoomCreatedPage() {
-  const created = useLocation().state as CreateRoomResponse | null
+  const created = useLocation().state as CreateRoomResponse | null;
   // Los datos editados aquí se muestran al momento.
-  const [room, setRoom] = useState(created?.room)
-  const [editing, setEditing] = useState(false)
-  if (!created?.manageToken || !room) return <Navigate to="/" replace />
-  const { inviteCode, manageToken } = created
+  const [room, setRoom] = useState(created?.room);
+  const [editing, setEditing] = useState(false);
+  if (!created?.manageToken || !room) return <Navigate to="/" replace />;
+  const { inviteCode, manageToken } = created;
 
   return (
     <PageLayout>
@@ -71,5 +71,5 @@ export function RoomCreatedPage() {
         onSaved={setRoom}
       />
     </PageLayout>
-  )
+  );
 }

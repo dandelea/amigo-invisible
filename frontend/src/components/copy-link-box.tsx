@@ -1,8 +1,8 @@
-import { useEffect, useRef, useState } from 'react'
-import { Button } from '@/components/ui/button'
-import { t } from '@/texts/es'
+import { useEffect, useRef, useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { t } from '@/texts/es';
 
-type CopyState = 'idle' | 'copied' | 'failed'
+type CopyState = 'idle' | 'copied' | 'failed';
 
 // Enlace en una caja, botón «Copiar enlace» y confirmación visible que
 // también se anuncia a los lectores de pantalla.
@@ -10,23 +10,23 @@ export function CopyLinkBox({
   url,
   primary,
 }: {
-  url: string
-  primary?: boolean
+  url: string;
+  primary?: boolean;
 }) {
-  const [state, setState] = useState<CopyState>('idle')
-  const timer = useRef<number | undefined>(undefined)
+  const [state, setState] = useState<CopyState>('idle');
+  const timer = useRef<number | undefined>(undefined);
 
-  useEffect(() => () => window.clearTimeout(timer.current), [])
+  useEffect(() => () => window.clearTimeout(timer.current), []);
 
   async function copy() {
     try {
-      await navigator.clipboard.writeText(url)
-      setState('copied')
+      await navigator.clipboard.writeText(url);
+      setState('copied');
     } catch {
-      setState('failed')
+      setState('failed');
     }
-    window.clearTimeout(timer.current)
-    timer.current = window.setTimeout(() => setState('idle'), 4000)
+    window.clearTimeout(timer.current);
+    timer.current = window.setTimeout(() => setState('idle'), 4000);
   }
 
   return (
@@ -46,5 +46,5 @@ export function CopyLinkBox({
         )}
       </p>
     </div>
-  )
+  );
 }

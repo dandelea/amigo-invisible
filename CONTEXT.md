@@ -15,6 +15,11 @@ Resumen para traspasos entre agentes. La fuente de verdad es [`Prompt_inicial_Am
   - componentes `IconButton`, `SegmentedControl`, `Switch`, `SelectableOption`, `ResponsiveDialog`, `ConfirmDialog`, `ActionSheetItem`, `PairGroup`, `WishlistCard` y `WishlistEditor`;
   - al expulsar o salir, el servidor cierra el socket del participante (`io server disconnect`): el cliente debe recargar y mostrar «No encontrado».
 - **Pasan a la Fase 4** (confirmado por el usuario): «Regenerar enlace personal» en el menú ⋮ y el aviso «No hay solución» junto a «Sortear».
+- **Decisiones de la Fase 4** (usuario, 18/10/2026):
+  - la asignación se obtiene por HTTP con el token del participante (`GET /api/me/assignment`) y el socket solo avisa; el prompt inicial está actualizado;
+  - ESLint **sustituye** a oxlint;
+  - Prettier con un **estilo común** en la raíz: comillas simples, comas finales y punto y coma (propuesto). El frontend se reformatea en un commit aparte, solo de formato.
+- **Plan de la Fase 4**: 4a herramientas → 4b backend del sorteo → 4c frontend del sorteo, cada parte con revisión del usuario.
 - **Pedido por el usuario para la Fase 4** (18/10/2026): ESLint y Prettier en todo el proyecto, con Husky y lint-staged en el pre-commit. Hoy backend y frontend usan oxlint (venía con las plantillas) y solo el backend tiene Prettier: al planificar, decidir con el usuario si ESLint sustituye a oxlint o convive con él.
 - **Pedido por el usuario para la Fase 4** (18/10/2026): carpeta `.vscode/` con configuraciones de depuración recomendadas (`launch.json`) y extensiones recomendadas (`extensions.json`) para este proyecto. El `.gitignore` ya deja pasar `.vscode/extensions.json`; habrá que permitir también `launch.json`.
 
@@ -113,11 +118,13 @@ Resumen para traspasos entre agentes. La fuente de verdad es [`Prompt_inicial_Am
 ### Decisiones
 
 Hay tres añadidos respecto a los mockups, que se comunicaron al usuario:
+
 - un botón «Ir a mi sala» en «Sala creada», porque si no, no hay forma de llegar al panel;
 - una tarjeta con el enlace de invitación en el panel del organizador, para poder volver a compartirlo;
 - la tarjeta «Guarda tu enlace personal» en la sala del participante, solo justo después de unirse.
 
 Otras decisiones:
+
 - «Sala creada» recibe los enlaces en el estado de la navegación; si se recarga, vuelve al inicio.
 - El token del enlace se lee del fragmento y no se guarda en el navegador: el propio enlace es la forma de volver.
 - El ejemplo de los mockups «sábado 20 de diciembre de 2026» es incorrecto: es domingo. La app formatea la fecha real.

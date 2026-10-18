@@ -9,7 +9,7 @@ services:
       POSTGRES_PASSWORD: amigo
       POSTGRES_DB: amigo
     ports:
-      - "127.0.0.1:54329:5432"
+      - '127.0.0.1:54329:5432'
     volumes:
       - db-data:/var/lib/postgresql/data
 
@@ -19,10 +19,10 @@ services:
     environment:
       ROOT_ACCESS_KEY: amigo
       ROOT_SECRET_KEY: amigo-secreto
-    entrypoint: ["sh", "-c"]
-    command: ["mkdir -p /data && versitygw --port :7070 posix /data"]
+    entrypoint: ['sh', '-c']
+    command: ['mkdir -p /data && versitygw --port :7070 posix /data']
     ports:
-      - "127.0.0.1:59000:7070"
+      - '127.0.0.1:59000:7070'
     volumes:
       - s3-data:/data
 

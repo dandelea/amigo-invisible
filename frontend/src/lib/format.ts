@@ -1,6 +1,6 @@
 // Formato de fechas e importes en español de España.
 
-const parse = (isoDate: string) => new Date(`${isoDate}T12:00:00`)
+const parse = (isoDate: string) => new Date(`${isoDate}T12:00:00`);
 
 // «20 dic 2026»
 export function formatShortDate(isoDate: string): string {
@@ -10,7 +10,7 @@ export function formatShortDate(isoDate: string): string {
     year: 'numeric',
   })
     .format(parse(isoDate))
-    .replace(/\./g, '')
+    .replace(/\./g, '');
 }
 
 // «sábado 20 de diciembre de 2026»
@@ -22,7 +22,7 @@ export function formatLongDate(isoDate: string): string {
     year: 'numeric',
   })
     .format(parse(isoDate))
-    .replace(',', '')
+    .replace(',', '');
 }
 
 // «15 €», «15,50 €»
@@ -32,24 +32,24 @@ export function formatBudget(euros: number): string {
     currency: 'EUR',
     minimumFractionDigits: Number.isInteger(euros) ? 0 : 2,
     maximumFractionDigits: 2,
-  }).format(euros)
+  }).format(euros);
 }
 
 // Fecha de hoy en formato YYYY-MM-DD, en la zona horaria del navegador.
 export function todayIso(now = new Date()): string {
-  const local = new Date(now.getTime() - now.getTimezoneOffset() * 60_000)
-  return local.toISOString().slice(0, 10)
+  const local = new Date(now.getTime() - now.getTimezoneOffset() * 60_000);
+  return local.toISOString().slice(0, 10);
 }
 
 export function initialOf(name: string): string {
-  return Array.from(name.trim())[0]?.toLocaleUpperCase('es') ?? '?'
+  return Array.from(name.trim())[0]?.toLocaleUpperCase('es') ?? '?';
 }
 
 // «1,2 MB», «840 KB»
 export function formatFileSize(bytes: number): string {
   if (bytes < 1024 * 1024) {
-    return `${Math.max(1, Math.round(bytes / 1024))} KB`
+    return `${Math.max(1, Math.round(bytes / 1024))} KB`;
   }
-  const mb = bytes / (1024 * 1024)
-  return `${mb.toLocaleString('es-ES', { maximumFractionDigits: 1 })} MB`
+  const mb = bytes / (1024 * 1024);
+  return `${mb.toLocaleString('es-ES', { maximumFractionDigits: 1 })} MB`;
 }

@@ -1,26 +1,26 @@
-import { useEffect, useState } from 'react'
-import { Link } from 'react-router'
-import { getAvailability } from '@/api/rooms'
-import { PageLayout } from '@/components/page-layout'
-import { StepCard } from '@/components/step-card'
-import { Button } from '@/components/ui/button'
-import { Card } from '@/components/ui/card'
-import { t } from '@/texts/es'
+import { useEffect, useState } from 'react';
+import { Link } from 'react-router';
+import { getAvailability } from '@/api/rooms';
+import { PageLayout } from '@/components/page-layout';
+import { StepCard } from '@/components/step-card';
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
+import { t } from '@/texts/es';
 
 export function HomePage() {
   // null mientras no se sabe (o si falla la consulta): se deja intentar y
   // la pantalla de crear sala informa del error si lo hay.
-  const [canCreate, setCanCreate] = useState<boolean | null>(null)
+  const [canCreate, setCanCreate] = useState<boolean | null>(null);
 
   useEffect(() => {
-    let active = true
+    let active = true;
     getAvailability()
       .then((r) => active && setCanCreate(r.canCreateRoom))
-      .catch(() => active && setCanCreate(null))
+      .catch(() => active && setCanCreate(null));
     return () => {
-      active = false
-    }
-  }, [])
+      active = false;
+    };
+  }, []);
 
   return (
     <PageLayout>
@@ -46,7 +46,7 @@ export function HomePage() {
         <CreateAction canCreate={canCreate} />
       </div>
     </PageLayout>
-  )
+  );
 }
 
 function CreateAction({ canCreate }: { canCreate: boolean | null }) {
@@ -58,11 +58,11 @@ function CreateAction({ canCreate }: { canCreate: boolean | null }) {
           {t.status.noRooms.body}
         </p>
       </Card>
-    )
+    );
   }
   return (
     <Button asChild variant="primary" size="lg" className="w-full lg:w-auto">
       <Link to="/crear">{t.home.createRoom}</Link>
     </Button>
-  )
+  );
 }

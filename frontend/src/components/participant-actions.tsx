@@ -1,12 +1,12 @@
-import { useState } from 'react'
-import { EllipsisVertical } from 'lucide-react'
-import { expelParticipant } from '@/api/rooms'
-import type { Participant } from '@/api/types'
-import { ActionSheetItem } from '@/components/ui/action-sheet-item'
-import { ConfirmDialog } from '@/components/ui/confirm-dialog'
-import { IconButton } from '@/components/ui/icon-button'
-import { ResponsiveDialog } from '@/components/ui/responsive-dialog'
-import { t } from '@/texts/es'
+import { useState } from 'react';
+import { EllipsisVertical } from 'lucide-react';
+import { expelParticipant } from '@/api/rooms';
+import type { Participant } from '@/api/types';
+import { ActionSheetItem } from '@/components/ui/action-sheet-item';
+import { ConfirmDialog } from '@/components/ui/confirm-dialog';
+import { IconButton } from '@/components/ui/icon-button';
+import { ResponsiveDialog } from '@/components/ui/responsive-dialog';
+import { t } from '@/texts/es';
 
 // Botón ⋮ de un participante en el panel del organizador, con su menú de
 // acciones (mockup «Acciones de participante») y la confirmación de
@@ -15,11 +15,11 @@ export function ParticipantActions({
   token,
   participant,
 }: {
-  token: string
-  participant: Participant
+  token: string;
+  participant: Participant;
 }) {
-  const [menu, setMenu] = useState(false)
-  const [confirmExpel, setConfirmExpel] = useState(false)
+  const [menu, setMenu] = useState(false);
+  const [confirmExpel, setConfirmExpel] = useState(false);
 
   return (
     <>
@@ -40,8 +40,8 @@ export function ParticipantActions({
           title={t.organizer.expel}
           description={t.organizer.expelHint}
           onClick={() => {
-            setMenu(false)
-            setConfirmExpel(true)
+            setMenu(false);
+            setConfirmExpel(true);
           }}
         />
       </ResponsiveDialog>
@@ -55,5 +55,5 @@ export function ParticipantActions({
         onConfirm={() => expelParticipant(token, participant.id)}
       />
     </>
-  )
+  );
 }

@@ -1,48 +1,48 @@
-import { useState, type FormEvent } from 'react'
-import { useNavigate } from 'react-router'
-import { ApiError } from '@/api/client'
-import { createRoom } from '@/api/rooms'
-import type { CreateRoomInput } from '@/api/types'
-import { PageLayout } from '@/components/page-layout'
-import { RoomFields } from '@/components/room-form'
-import { Alert } from '@/components/ui/alert'
-import { Button } from '@/components/ui/button'
-import { Card } from '@/components/ui/card'
+import { useState, type FormEvent } from 'react';
+import { useNavigate } from 'react-router';
+import { ApiError } from '@/api/client';
+import { createRoom } from '@/api/rooms';
+import type { CreateRoomInput } from '@/api/types';
+import { PageLayout } from '@/components/page-layout';
+import { RoomFields } from '@/components/room-form';
+import { Alert } from '@/components/ui/alert';
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
 import {
   parseRoomForm,
   serverFieldErrors,
   useRoomForm,
-} from '@/hooks/use-room-form'
-import { errorText, t } from '@/texts/es'
+} from '@/hooks/use-room-form';
+import { errorText, t } from '@/texts/es';
 
 export function CreateRoomPage() {
-  const navigate = useNavigate()
-  const form = useRoomForm()
-  const [serverError, setServerError] = useState<string | null>(null)
-  const [submitting, setSubmitting] = useState(false)
+  const navigate = useNavigate();
+  const form = useRoomForm();
+  const [serverError, setServerError] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
 
   async function onSubmit(e: FormEvent) {
-    e.preventDefault()
-    const { errors, parsed } = parseRoomForm(form.values)
-    form.setErrors(errors)
-    setServerError(null)
-    if (Object.keys(errors).length > 0) return
-    const input: CreateRoomInput = { name: parsed.name }
-    if (parsed.giftDate) input.giftDate = parsed.giftDate
-    if (parsed.budget != null) input.budget = parsed.budget
-    setSubmitting(true)
+    e.preventDefault();
+    const { errors, parsed } = parseRoomForm(form.values);
+    form.setErrors(errors);
+    setServerError(null);
+    if (Object.keys(errors).length > 0) return;
+    const input: CreateRoomInput = { name: parsed.name };
+    if (parsed.giftDate) input.giftDate = parsed.giftDate;
+    if (parsed.budget != null) input.budget = parsed.budget;
+    setSubmitting(true);
     try {
-      const created = await createRoom(input)
-      navigate('/creada', { state: created })
+      const created = await createRoom(input);
+      navigate('/creada', { state: created });
     } catch (error) {
-      const fields = serverFieldErrors(error)
+      const fields = serverFieldErrors(error);
       if (fields) {
-        form.setErrors(fields)
+        form.setErrors(fields);
       } else {
-        const err = error instanceof ApiError ? error : null
-        setServerError(errorText(err?.code ?? 'UNKNOWN', err?.message))
+        const err = error instanceof ApiError ? error : null;
+        setServerError(errorText(err?.code ?? 'UNKNOWN', err?.message));
       }
-      setSubmitting(false)
+      setSubmitting(false);
     }
   }
 
@@ -70,5 +70,5 @@ export function CreateRoomPage() {
         </Button>
       </form>
     </PageLayout>
-  )
+  );
 }

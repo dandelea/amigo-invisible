@@ -1,11 +1,11 @@
-import type { ReactNode } from 'react'
-import type { Pair, Participant } from '@/api/types'
-import { Avatar } from '@/components/ui/avatar'
-import { Card } from '@/components/ui/card'
-import { Pill } from '@/components/ui/pill'
-import { initialOf } from '@/lib/format'
-import { cn } from '@/lib/utils'
-import { t } from '@/texts/es'
+import type { ReactNode } from 'react';
+import type { Pair, Participant } from '@/api/types';
+import { Avatar } from '@/components/ui/avatar';
+import { Card } from '@/components/ui/card';
+import { Pill } from '@/components/ui/pill';
+import { initialOf } from '@/lib/format';
+import { cn } from '@/lib/utils';
+import { t } from '@/texts/es';
 
 // Fila de participante: avatar con la inicial, nombre, «Tú» si es la
 // persona que mira, y una zona a la derecha para acciones.
@@ -16,11 +16,11 @@ export function ParticipantRow({
   trailing,
   paired,
 }: {
-  name: string
-  isMe?: boolean
-  detail?: ReactNode
-  trailing?: ReactNode
-  paired?: boolean
+  name: string;
+  isMe?: boolean;
+  detail?: ReactNode;
+  trailing?: ReactNode;
+  paired?: boolean;
 }) {
   return (
     <li
@@ -42,7 +42,7 @@ export function ParticipantRow({
       </div>
       {trailing}
     </li>
-  )
+  );
 }
 
 // Bloque de una pareja: fondo rosado, una línea que une los dos avatares y
@@ -52,9 +52,9 @@ export function PairGroup({
   children,
   footer,
 }: {
-  names: [string, string]
-  children: ReactNode
-  footer?: ReactNode
+  names: [string, string];
+  children: ReactNode;
+  footer?: ReactNode;
 }) {
   return (
     <li
@@ -84,10 +84,11 @@ export function PairGroup({
       </div>
       {footer}
     </li>
-  )
+  );
 }
 
-type Item<P> = { kind: 'single'; p: P } | { kind: 'pair'; pair: Pair; members: [P, P] }
+type Item<P> =
+  { kind: 'single'; p: P } | { kind: 'pair'; pair: Pair; members: [P, P] };
 
 // Agrupa los participantes: cada pareja aparece donde aparece su primer
 // miembro, con los dos juntos.
@@ -95,27 +96,27 @@ function groupByPairs<P extends Participant>(
   participants: P[],
   pairs: Pair[],
 ): Item<P>[] {
-  const byId = new Map(participants.map((p) => [p.id, p]))
-  const pairOf = new Map<string, Pair>()
+  const byId = new Map(participants.map((p) => [p.id, p]));
+  const pairOf = new Map<string, Pair>();
   for (const pair of pairs) {
-    for (const id of pair.participantIds) pairOf.set(id, pair)
+    for (const id of pair.participantIds) pairOf.set(id, pair);
   }
-  const done = new Set<string>()
-  const items: Item<P>[] = []
+  const done = new Set<string>();
+  const items: Item<P>[] = [];
   for (const p of participants) {
-    if (done.has(p.id)) continue
-    const pair = pairOf.get(p.id)
-    const otherId = pair?.participantIds.find((id) => id !== p.id)
-    const other = otherId ? byId.get(otherId) : undefined
+    if (done.has(p.id)) continue;
+    const pair = pairOf.get(p.id);
+    const otherId = pair?.participantIds.find((id) => id !== p.id);
+    const other = otherId ? byId.get(otherId) : undefined;
     if (pair && other) {
-      items.push({ kind: 'pair', pair, members: [p, other] })
-      done.add(other.id)
+      items.push({ kind: 'pair', pair, members: [p, other] });
+      done.add(other.id);
     } else {
-      items.push({ kind: 'single', p })
+      items.push({ kind: 'single', p });
     }
-    done.add(p.id)
+    done.add(p.id);
   }
-  return items
+  return items;
 }
 
 // Lista de participantes en una tarjeta, con las parejas agrupadas.
@@ -130,15 +131,15 @@ export function ParticipantList<P extends Participant>({
   renderDetail,
   renderPairFooter,
 }: {
-  participants: P[]
-  pairs?: Pair[]
-  meId?: string
-  hint?: string
-  aside?: ReactNode
-  footer?: ReactNode
-  renderTrailing?: (p: P) => ReactNode
-  renderDetail?: (p: P, paired: boolean) => ReactNode
-  renderPairFooter?: (pair: Pair, members: [P, P]) => ReactNode
+  participants: P[];
+  pairs?: Pair[];
+  meId?: string;
+  hint?: string;
+  aside?: ReactNode;
+  footer?: ReactNode;
+  renderTrailing?: (p: P) => ReactNode;
+  renderDetail?: (p: P, paired: boolean) => ReactNode;
+  renderPairFooter?: (pair: Pair, members: [P, P]) => ReactNode;
 }) {
   const row = (p: P, paired: boolean) => (
     <ParticipantRow
@@ -149,7 +150,7 @@ export function ParticipantList<P extends Participant>({
       detail={renderDetail?.(p, paired)}
       trailing={renderTrailing?.(p)}
     />
-  )
+  );
 
   return (
     <Card className="gap-0 px-3.5 py-1">
@@ -181,5 +182,5 @@ export function ParticipantList<P extends Participant>({
       )}
       {footer}
     </Card>
-  )
+  );
 }

@@ -1,8 +1,8 @@
-import type { ReactNode } from 'react'
-import { Dialog as DialogPrimitive } from 'radix-ui'
-import { cn } from '@/lib/utils'
-import { t } from '@/texts/es'
-import { Button } from './button'
+import type { ReactNode } from 'react';
+import { Dialog as DialogPrimitive } from 'radix-ui';
+import { cn } from '@/lib/utils';
+import { t } from '@/texts/es';
+import { Button } from './button';
 
 // Diálogo de los mockups: hoja inferior en móvil y cuadro centrado de 460 px
 // desde tablet. Radix se encarga de atrapar el foco, cerrar con Escape y
@@ -16,14 +16,14 @@ export function ResponsiveDialog({
   children,
   className,
 }: {
-  open: boolean
-  onOpenChange: (open: boolean) => void
-  title: string
-  description?: ReactNode
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  title: string;
+  description?: ReactNode;
   // Botón «Cerrar» junto al título (las confirmaciones no lo llevan).
-  showClose?: boolean
-  children?: ReactNode
-  className?: string
+  showClose?: boolean;
+  children?: ReactNode;
+  className?: string;
 }) {
   return (
     <DialogPrimitive.Root open={open} onOpenChange={onOpenChange}>
@@ -60,5 +60,5 @@ export function ResponsiveDialog({
         </DialogPrimitive.Content>
       </DialogPrimitive.Portal>
     </DialogPrimitive.Root>
-  )
+  );
 }

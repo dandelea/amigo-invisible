@@ -1,102 +1,102 @@
-import { useEffect, useState, type FormEvent } from 'react'
-import { Link, useNavigate, useParams } from 'react-router'
-import { ApiError } from '@/api/client'
-import { getInvitation, joinRoom } from '@/api/rooms'
-import type { Invitation } from '@/api/types'
-import { PageLayout } from '@/components/page-layout'
-import { StatusScreen } from '@/components/status-screen'
-import { Alert } from '@/components/ui/alert'
-import { Button } from '@/components/ui/button'
-import { Card } from '@/components/ui/card'
-import { FormField } from '@/components/ui/form-field'
-import { Pill } from '@/components/ui/pill'
-import { personalPath } from '@/lib/links'
-import { roomSummary } from '@/lib/room'
+import { useEffect, useState, type FormEvent } from 'react';
+import { Link, useNavigate, useParams } from 'react-router';
+import { ApiError } from '@/api/client';
+import { getInvitation, joinRoom } from '@/api/rooms';
+import type { Invitation } from '@/api/types';
+import { PageLayout } from '@/components/page-layout';
+import { StatusScreen } from '@/components/status-screen';
+import { Alert } from '@/components/ui/alert';
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
+import { FormField } from '@/components/ui/form-field';
+import { Pill } from '@/components/ui/pill';
+import { personalPath } from '@/lib/links';
+import { roomSummary } from '@/lib/room';
 import {
   cleanName,
   PARTICIPANT_NAME_MAX,
   PARTICIPANT_NAME_PATTERN,
-} from '@/lib/names'
-import { errorText, t } from '@/texts/es'
+} from '@/lib/names';
+import { errorText, t } from '@/texts/es';
 
 type LoadState =
   | { status: 'loading' }
   | { status: 'ready'; invitation: Invitation }
-  | { status: 'error'; code: string }
+  | { status: 'error'; code: string };
 
 const listFormat = new Intl.ListFormat('es', {
   style: 'long',
   type: 'conjunction',
-})
+});
 
 export function JoinPage() {
-  const { code = '' } = useParams()
-  const navigate = useNavigate()
-  const [load, setLoad] = useState<LoadState>({ status: 'loading' })
-  const [name, setName] = useState('')
-  const [nameError, setNameError] = useState<string | null>(null)
-  const [nameTaken, setNameTaken] = useState(false)
-  const [serverError, setServerError] = useState<string | null>(null)
-  const [submitting, setSubmitting] = useState(false)
-  const [attempt, setAttempt] = useState(0)
+  const { code = '' } = useParams();
+  const navigate = useNavigate();
+  const [load, setLoad] = useState<LoadState>({ status: 'loading' });
+  const [name, setName] = useState('');
+  const [nameError, setNameError] = useState<string | null>(null);
+  const [nameTaken, setNameTaken] = useState(false);
+  const [serverError, setServerError] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
+  const [attempt, setAttempt] = useState(0);
 
   useEffect(() => {
-    let active = true
+    let active = true;
     getInvitation(code)
       .then((invitation) => active && setLoad({ status: 'ready', invitation }))
       .catch((error: unknown) => {
-        if (!active) return
-        const errCode = error instanceof ApiError ? error.code : 'UNKNOWN'
-        setLoad({ status: 'error', code: errCode })
-      })
+        if (!active) return;
+        const errCode = error instanceof ApiError ? error.code : 'UNKNOWN';
+        setLoad({ status: 'error', code: errCode });
+      });
     return () => {
-      active = false
-    }
-  }, [code, attempt])
+      active = false;
+    };
+  }, [code, attempt]);
 
   async function onSubmit(e: FormEvent) {
-    e.preventDefault()
-    const cleaned = cleanName(name)
-    setServerError(null)
-    setNameTaken(false)
-    if (!cleaned) return setNameError(t.join.errors.nameEmpty)
+    e.preventDefault();
+    const cleaned = cleanName(name);
+    setServerError(null);
+    setNameTaken(false);
+    if (!cleaned) return setNameError(t.join.errors.nameEmpty);
     if (!PARTICIPANT_NAME_PATTERN.test(cleaned))
-      return setNameError(t.join.errors.nameChars)
-    setNameError(null)
-    setSubmitting(true)
+      return setNameError(t.join.errors.nameChars);
+    setNameError(null);
+    setSubmitting(true);
     try {
-      const { participantToken } = await joinRoom(code, cleaned)
+      const { participantToken } = await joinRoom(code, cleaned);
       navigate(personalPath(participantToken), {
         replace: true,
         state: { justJoined: true },
-      })
+      });
     } catch (error) {
-      setSubmitting(false)
-      const err = error instanceof ApiError ? error : null
-      const errCode = err?.code ?? 'UNKNOWN'
+      setSubmitting(false);
+      const err = error instanceof ApiError ? error : null;
+      const errCode = err?.code ?? 'UNKNOWN';
       if (errCode === 'NAME_TAKEN') {
-        setNameError(t.join.nameTaken(cleaned))
-        setNameTaken(true)
+        setNameError(t.join.nameTaken(cleaned));
+        setNameTaken(true);
       } else if (errCode === 'VALIDATION_ERROR' && err?.fields.name) {
-        setNameError(err.fields.name)
+        setNameError(err.fields.name);
       } else if (
         errCode === 'ROOM_FULL' ||
         errCode === 'ROOM_CLOSED' ||
         errCode === 'NOT_FOUND'
       ) {
         // La sala cambió mientras se escribía: se recarga su estado.
-        setAttempt((n) => n + 1)
+        setAttempt((n) => n + 1);
       } else {
-        setServerError(errorText(errCode, err?.message))
+        setServerError(errorText(errCode, err?.message));
       }
     }
   }
 
   if (load.status === 'loading') {
-    return <StatusScreen title={t.loading} spinner />
+    return <StatusScreen title={t.loading} spinner />;
   }
   if (load.status === 'error') {
-    if (load.code === 'NOT_FOUND') return <NotFoundScreen />
+    if (load.code === 'NOT_FOUND') return <NotFoundScreen />;
     return (
       <StatusScreen
         title={t.status.error.title}
@@ -105,18 +105,18 @@ export function JoinPage() {
           <Button onClick={() => setAttempt((n) => n + 1)}>{t.retry}</Button>
         }
       />
-    )
+    );
   }
 
-  const { invitation } = load
+  const { invitation } = load;
   if (invitation.cannotJoinReason === 'ROOM_FULL') {
-    return <StatusScreen {...t.status.full} />
+    return <StatusScreen {...t.status.full} />;
   }
   if (invitation.cannotJoinReason === 'ROOM_CLOSED') {
-    return <StatusScreen {...t.status.closed} />
+    return <StatusScreen {...t.status.closed} />;
   }
 
-  const summary = roomSummary(invitation.room)
+  const summary = roomSummary(invitation.room);
   return (
     <PageLayout>
       <form
@@ -178,7 +178,7 @@ export function JoinPage() {
         </Button>
       </form>
     </PageLayout>
-  )
+  );
 }
 
 export function NotFoundScreen() {
@@ -191,5 +191,5 @@ export function NotFoundScreen() {
         </Button>
       }
     />
-  )
+  );
 }

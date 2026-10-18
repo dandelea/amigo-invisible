@@ -1,6 +1,6 @@
-import type { ComponentProps } from 'react'
-import { cva, type VariantProps } from 'class-variance-authority'
-import { cn } from '@/lib/utils'
+import type { ComponentProps } from 'react';
+import { cva, type VariantProps } from 'class-variance-authority';
+import { cn } from '@/lib/utils';
 
 // Círculo de 32 px con una inicial o un número. Es decorativo: el nombre
 // siempre aparece en texto al lado.
@@ -16,7 +16,7 @@ const avatarVariants = cva(
     },
     defaultVariants: { variant: 'default' },
   },
-)
+);
 
 export function Avatar({
   className,
@@ -29,5 +29,5 @@ export function Avatar({
       className={cn(avatarVariants({ variant }), className)}
       {...props}
     />
-  )
+  );
 }

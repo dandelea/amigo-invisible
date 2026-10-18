@@ -1,6 +1,6 @@
-import type { ComponentProps } from 'react'
-import { cva, type VariantProps } from 'class-variance-authority'
-import { cn } from '@/lib/utils'
+import type { ComponentProps } from 'react';
+import { cva, type VariantProps } from 'class-variance-authority';
+import { cn } from '@/lib/utils';
 
 // Etiqueta pequeña: «Opcional», «Tú», «Abierta · 5/30», «Privado»…
 const pillVariants = cva(
@@ -15,7 +15,7 @@ const pillVariants = cva(
     },
     defaultVariants: { variant: 'neutral' },
   },
-)
+);
 
 export function Pill({
   className,
@@ -24,5 +24,5 @@ export function Pill({
 }: ComponentProps<'span'> & VariantProps<typeof pillVariants>) {
   return (
     <span className={cn(pillVariants({ variant }), className)} {...props} />
-  )
+  );
 }

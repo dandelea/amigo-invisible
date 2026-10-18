@@ -1,6 +1,6 @@
-import type { ComponentProps } from 'react'
-import { cva, type VariantProps } from 'class-variance-authority'
-import { cn } from '@/lib/utils'
+import type { ComponentProps } from 'react';
+import { cva, type VariantProps } from 'class-variance-authority';
+import { cn } from '@/lib/utils';
 
 const alertVariants = cva('rounded-lg border px-3 py-2.5 text-[13px]', {
   variants: {
@@ -11,7 +11,7 @@ const alertVariants = cva('rounded-lg border px-3 py-2.5 text-[13px]', {
     },
   },
   defaultVariants: { variant: 'warning' },
-})
+});
 
 // Aviso en línea. Los errores se anuncian a los lectores de pantalla.
 export function Alert({
@@ -26,5 +26,5 @@ export function Alert({
       className={cn(alertVariants({ variant }), className)}
       {...props}
     />
-  )
+  );
 }

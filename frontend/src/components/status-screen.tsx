@@ -1,6 +1,6 @@
-import type { ReactNode } from 'react'
-import { Card } from '@/components/ui/card'
-import { PageLayout } from './page-layout'
+import type { ReactNode } from 'react';
+import { Card } from '@/components/ui/card';
+import { PageLayout } from './page-layout';
 
 // Pantalla de estado (sala llena, cerrada, no encontrado, sin salas,
 // cargando…): una tarjeta centrada con título, texto y acción opcional.
@@ -10,10 +10,10 @@ export function StatusScreen({
   spinner,
   action,
 }: {
-  title: string
-  body?: string
-  spinner?: boolean
-  action?: ReactNode
+  title: string;
+  body?: string;
+  spinner?: boolean;
+  action?: ReactNode;
 }) {
   return (
     <PageLayout className="justify-center">
@@ -32,5 +32,5 @@ export function StatusScreen({
         {action}
       </Card>
     </PageLayout>
-  )
+  );
 }

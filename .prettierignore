@@ -1,0 +1,9 @@
+# Generado o de terceros: no se formatea a mano.
+node_modules/
+dist/
+coverage/
+package-lock.json
+backend/drizzle/
+docs/openapi.json
+# Mockups exportados de Claude Design: se conservan tal cual.
+docs/mockups/

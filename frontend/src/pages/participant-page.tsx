@@ -1,38 +1,42 @@
-import { useState } from 'react'
-import { useLocation, useNavigate } from 'react-router'
-import { getParticipantView, leaveRoom } from '@/api/rooms'
-import { CopyLinkBox } from '@/components/copy-link-box'
-import { MyWishlist } from '@/components/my-wishlist'
-import { PageLayout, TwoColumns } from '@/components/page-layout'
-import { ParticipantList } from '@/components/participant-list'
-import { RoomHeader } from '@/components/room-header'
-import { Button } from '@/components/ui/button'
-import { Card } from '@/components/ui/card'
-import { ConfirmDialog } from '@/components/ui/confirm-dialog'
-import { WishlistButton } from '@/components/wishlist'
-import { useLiveRoom } from '@/hooks/use-live-room'
-import { personalUrl, tokenFromHash } from '@/lib/links'
-import { t } from '@/texts/es'
-import { NotFoundScreen } from './join-page'
-import { LiveRoomFallback } from './live-room-fallback'
+import { useState } from 'react';
+import { useLocation, useNavigate } from 'react-router';
+import { getParticipantView, leaveRoom } from '@/api/rooms';
+import { CopyLinkBox } from '@/components/copy-link-box';
+import { MyWishlist } from '@/components/my-wishlist';
+import { PageLayout, TwoColumns } from '@/components/page-layout';
+import { ParticipantList } from '@/components/participant-list';
+import { RoomHeader } from '@/components/room-header';
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
+import { ConfirmDialog } from '@/components/ui/confirm-dialog';
+import { WishlistButton } from '@/components/wishlist';
+import { useLiveRoom } from '@/hooks/use-live-room';
+import { personalUrl, tokenFromHash } from '@/lib/links';
+import { t } from '@/texts/es';
+import { NotFoundScreen } from './join-page';
+import { LiveRoomFallback } from './live-room-fallback';
 
 export function ParticipantPage() {
-  const location = useLocation()
-  const navigate = useNavigate()
-  const token = tokenFromHash(location.hash)
+  const location = useLocation();
+  const navigate = useNavigate();
+  const token = tokenFromHash(location.hash);
   const justJoined = Boolean(
     (location.state as { justJoined?: boolean } | null)?.justJoined,
-  )
-  const { state, reload } = useLiveRoom('participant', token, getParticipantView)
-  const [confirmLeave, setConfirmLeave] = useState(false)
+  );
+  const { state, reload } = useLiveRoom(
+    'participant',
+    token,
+    getParticipantView,
+  );
+  const [confirmLeave, setConfirmLeave] = useState(false);
 
-  if (!token) return <NotFoundScreen />
+  if (!token) return <NotFoundScreen />;
   if (state.status !== 'ready') {
-    return <LiveRoomFallback state={state} onRetry={reload} />
+    return <LiveRoomFallback state={state} onRetry={reload} />;
   }
-  const { room, me, participants, pairs, maxParticipants } = state.data
-  const open = room.status === 'open'
-  const mine = participants.find((p) => p.id === me.id)?.wishlist ?? null
+  const { room, me, participants, pairs, maxParticipants } = state.data;
+  const open = room.status === 'open';
+  const mine = participants.find((p) => p.id === me.id)?.wishlist ?? null;
 
   return (
     <PageLayout>
@@ -103,10 +107,10 @@ export function ParticipantPage() {
         cancelLabel={t.participant.leaveCancel}
         destructive
         onConfirm={async () => {
-          await leaveRoom(token)
-          navigate('/salida', { replace: true })
+          await leaveRoom(token);
+          navigate('/salida', { replace: true });
         }}
       />
     </PageLayout>
-  )
+  );
 }

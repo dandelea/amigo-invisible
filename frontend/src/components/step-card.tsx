@@ -1,5 +1,5 @@
-import { Avatar } from '@/components/ui/avatar'
-import { Card } from '@/components/ui/card'
+import { Avatar } from '@/components/ui/avatar';
+import { Card } from '@/components/ui/card';
 
 // Uno de los tres pasos del inicio.
 export function StepCard({
@@ -7,9 +7,9 @@ export function StepCard({
   title,
   body,
 }: {
-  step: number
-  title: string
-  body: string
+  step: number;
+  title: string;
+  body: string;
 }) {
   return (
     <Card className="flex-row items-center gap-2.5">
@@ -19,5 +19,5 @@ export function StepCard({
         <p className="text-[13px] text-muted-foreground">{body}</p>
       </div>
     </Card>
-  )
+  );
 }

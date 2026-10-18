@@ -1,24 +1,28 @@
-import { useRef, useState, type FormEvent } from 'react'
-import { ApiError } from '@/api/client'
-import { removeWishlist, setWishlistLink, uploadWishlistFile } from '@/api/rooms'
-import type { Wishlist } from '@/api/types'
-import { Alert } from '@/components/ui/alert'
-import { Button } from '@/components/ui/button'
-import { Card } from '@/components/ui/card'
-import { FormField } from '@/components/ui/form-field'
-import { Pill } from '@/components/ui/pill'
-import { ResponsiveDialog } from '@/components/ui/responsive-dialog'
-import { SegmentedControl } from '@/components/ui/segmented-control'
-import { formatFileSize } from '@/lib/format'
-import { fileLabel } from '@/lib/wishlist'
-import { errorText, t } from '@/texts/es'
+import { useRef, useState, type FormEvent } from 'react';
+import { ApiError } from '@/api/client';
+import {
+  removeWishlist,
+  setWishlistLink,
+  uploadWishlistFile,
+} from '@/api/rooms';
+import type { Wishlist } from '@/api/types';
+import { Alert } from '@/components/ui/alert';
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
+import { FormField } from '@/components/ui/form-field';
+import { Pill } from '@/components/ui/pill';
+import { ResponsiveDialog } from '@/components/ui/responsive-dialog';
+import { SegmentedControl } from '@/components/ui/segmented-control';
+import { formatFileSize } from '@/lib/format';
+import { fileLabel } from '@/lib/wishlist';
+import { errorText, t } from '@/texts/es';
 
-const MAX_BYTES = 5 * 1024 * 1024
-const ACCEPT = 'application/pdf,image/jpeg,image/png,image/webp'
-const ACCEPTED = /\.(pdf|jpe?g|png|webp)$/i
+const MAX_BYTES = 5 * 1024 * 1024;
+const ACCEPT = 'application/pdf,image/jpeg,image/png,image/webp';
+const ACCEPTED = /\.(pdf|jpe?g|png|webp)$/i;
 
 const errorOf = (e: unknown) =>
-  e instanceof ApiError ? errorText(e.code, e.message) : t.errors.default
+  e instanceof ApiError ? errorText(e.code, e.message) : t.errors.default;
 
 // Tarjeta «Mi lista de deseos» con su editor. Solo se puede cambiar antes
 // del sorteo (`editable`).
@@ -27,23 +31,23 @@ export function MyWishlist({
   wishlist,
   editable,
 }: {
-  token: string
-  wishlist: Wishlist | null
-  editable: boolean
+  token: string;
+  wishlist: Wishlist | null;
+  editable: boolean;
 }) {
-  const [editing, setEditing] = useState(false)
-  const [removing, setRemoving] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const [editing, setEditing] = useState(false);
+  const [removing, setRemoving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   async function remove() {
-    setRemoving(true)
-    setError(null)
+    setRemoving(true);
+    setError(null);
     try {
-      await removeWishlist(token)
+      await removeWishlist(token);
     } catch (e) {
-      setError(errorOf(e))
+      setError(errorOf(e));
     } finally {
-      setRemoving(false)
+      setRemoving(false);
     }
   }
 
@@ -96,7 +100,7 @@ export function MyWishlist({
         </>
       )}
     </Card>
-  )
+  );
 }
 
 // Editor con dos modos (mockups «Editar mi lista»): enlace o archivo.
@@ -105,57 +109,65 @@ function WishlistEditor({
   current,
   onDone,
 }: {
-  token: string
-  current: Wishlist | null
-  onDone: () => void
+  token: string;
+  current: Wishlist | null;
+  onDone: () => void;
 }) {
-  const [kind, setKind] = useState<'link' | 'file'>(current?.kind ?? 'link')
-  const [url, setUrl] = useState(current?.kind === 'link' ? (current.url ?? '') : '')
-  const [file, setFile] = useState<File | null>(null)
-  const [fieldError, setFieldError] = useState<string | null>(null)
-  const [error, setError] = useState<string | null>(null)
-  const [busy, setBusy] = useState(false)
-  const input = useRef<HTMLInputElement>(null)
+  const [kind, setKind] = useState<'link' | 'file'>(current?.kind ?? 'link');
+  const [url, setUrl] = useState(
+    current?.kind === 'link' ? (current.url ?? '') : '',
+  );
+  const [file, setFile] = useState<File | null>(null);
+  const [fieldError, setFieldError] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+  const input = useRef<HTMLInputElement>(null);
 
   function pick(chosen: File | undefined) {
-    setFieldError(null)
-    if (!chosen) return
-    if (!ACCEPTED.test(chosen.name)) return setFieldError(t.wishlist.errors.fileType)
-    if (chosen.size > MAX_BYTES) return setFieldError(t.wishlist.errors.fileSize)
-    setFile(chosen)
+    setFieldError(null);
+    if (!chosen) return;
+    if (!ACCEPTED.test(chosen.name))
+      return setFieldError(t.wishlist.errors.fileType);
+    if (chosen.size > MAX_BYTES)
+      return setFieldError(t.wishlist.errors.fileSize);
+    setFile(chosen);
   }
 
   async function run(action: () => Promise<unknown>) {
-    setBusy(true)
-    setError(null)
+    setBusy(true);
+    setError(null);
     try {
-      await action()
-      onDone()
+      await action();
+      onDone();
     } catch (e) {
-      if (e instanceof ApiError && e.code === 'VALIDATION_ERROR' && e.fields.url) {
-        setFieldError(e.fields.url)
+      if (
+        e instanceof ApiError &&
+        e.code === 'VALIDATION_ERROR' &&
+        e.fields.url
+      ) {
+        setFieldError(e.fields.url);
       } else {
-        setError(errorOf(e))
+        setError(errorOf(e));
       }
-      setBusy(false)
+      setBusy(false);
     }
   }
 
   function onSubmit(e: FormEvent) {
-    e.preventDefault()
-    setFieldError(null)
+    e.preventDefault();
+    setFieldError(null);
     if (kind === 'link') {
-      const value = url.trim()
+      const value = url.trim();
       if (!/^https:\/\/\S+\.\S+/i.test(value)) {
-        return setFieldError(t.wishlist.errors.link)
+        return setFieldError(t.wishlist.errors.link);
       }
-      return run(() => setWishlistLink(token, value))
+      return run(() => setWishlistLink(token, value));
     }
-    if (!file) return setFieldError(t.wishlist.errors.noFile)
-    return run(() => uploadWishlistFile(token, file))
+    if (!file) return setFieldError(t.wishlist.errors.noFile);
+    return run(() => uploadWishlistFile(token, file));
   }
 
-  const currentFile = current?.kind === 'file' ? current : null
+  const currentFile = current?.kind === 'file' ? current : null;
 
   return (
     <form onSubmit={onSubmit} noValidate className="flex flex-col gap-3.5">
@@ -163,8 +175,8 @@ function WishlistEditor({
         label={t.wishlist.kindLabel}
         value={kind}
         onChange={(next) => {
-          setKind(next)
-          setFieldError(null)
+          setKind(next);
+          setFieldError(null);
         }}
         options={[
           { value: 'link', label: t.wishlist.link },
@@ -234,9 +246,7 @@ function WishlistEditor({
               {file ? t.wishlist.chooseOther : t.wishlist.chooseFile}
             </Button>
           </Card>
-          {fieldError && (
-            <Alert variant="error">{fieldError}</Alert>
-          )}
+          {fieldError && <Alert variant="error">{fieldError}</Alert>}
           <p className="text-[13px] text-muted-foreground">
             {t.wishlist.fileRules}
           </p>
@@ -256,5 +266,5 @@ function WishlistEditor({
         </Button>
       )}
     </form>
-  )
+  );
 }

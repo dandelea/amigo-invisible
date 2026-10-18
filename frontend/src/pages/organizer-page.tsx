@@ -1,56 +1,56 @@
-import { useState } from 'react'
-import { useLocation } from 'react-router'
-import { ApiError } from '@/api/client'
-import { deletePair, getOrganizerView, setPairRule } from '@/api/rooms'
-import { CopyLinkBox } from '@/components/copy-link-box'
-import { EditRoomDialog } from '@/components/edit-room-dialog'
-import { MarkPairDialog } from '@/components/mark-pair-dialog'
-import { PageLayout, TwoColumns } from '@/components/page-layout'
-import { ParticipantActions } from '@/components/participant-actions'
-import { ParticipantList } from '@/components/participant-list'
-import { RoomHeader } from '@/components/room-header'
-import { Alert } from '@/components/ui/alert'
-import { Button } from '@/components/ui/button'
-import { Card } from '@/components/ui/card'
-import { Switch } from '@/components/ui/switch'
-import { useLiveRoom } from '@/hooks/use-live-room'
-import { inviteUrl, tokenFromHash } from '@/lib/links'
-import { roomSummary } from '@/lib/room'
-import { errorText, t } from '@/texts/es'
-import { NotFoundScreen } from './join-page'
-import { LiveRoomFallback } from './live-room-fallback'
+import { useState } from 'react';
+import { useLocation } from 'react-router';
+import { ApiError } from '@/api/client';
+import { deletePair, getOrganizerView, setPairRule } from '@/api/rooms';
+import { CopyLinkBox } from '@/components/copy-link-box';
+import { EditRoomDialog } from '@/components/edit-room-dialog';
+import { MarkPairDialog } from '@/components/mark-pair-dialog';
+import { PageLayout, TwoColumns } from '@/components/page-layout';
+import { ParticipantActions } from '@/components/participant-actions';
+import { ParticipantList } from '@/components/participant-list';
+import { RoomHeader } from '@/components/room-header';
+import { Alert } from '@/components/ui/alert';
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
+import { Switch } from '@/components/ui/switch';
+import { useLiveRoom } from '@/hooks/use-live-room';
+import { inviteUrl, tokenFromHash } from '@/lib/links';
+import { roomSummary } from '@/lib/room';
+import { errorText, t } from '@/texts/es';
+import { NotFoundScreen } from './join-page';
+import { LiveRoomFallback } from './live-room-fallback';
 
 export function OrganizerPage() {
-  const token = tokenFromHash(useLocation().hash)
-  const { state, reload } = useLiveRoom('organizer', token, getOrganizerView)
-  const [editing, setEditing] = useState(false)
-  const [markingPair, setMarkingPair] = useState(false)
-  const [busy, setBusy] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const token = tokenFromHash(useLocation().hash);
+  const { state, reload } = useLiveRoom('organizer', token, getOrganizerView);
+  const [editing, setEditing] = useState(false);
+  const [markingPair, setMarkingPair] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  if (!token) return <NotFoundScreen />
+  if (!token) return <NotFoundScreen />;
   if (state.status !== 'ready') {
-    return <LiveRoomFallback state={state} onRetry={reload} />
+    return <LiveRoomFallback state={state} onRetry={reload} />;
   }
-  const { room, inviteCode, participants, pairs, maxParticipants } = state.data
-  const open = room.status === 'open'
-  const summary = roomSummary(room)
-  const paired = new Set(pairs.flatMap((p) => p.participantIds))
-  const unpairedCount = participants.filter((p) => !paired.has(p.id)).length
+  const { room, inviteCode, participants, pairs, maxParticipants } = state.data;
+  const open = room.status === 'open';
+  const summary = roomSummary(room);
+  const paired = new Set(pairs.flatMap((p) => p.participantIds));
+  const unpairedCount = participants.filter((p) => !paired.has(p.id)).length;
 
   // Las acciones rápidas (regla, deshacer pareja) muestran su error aquí;
   // el estado nuevo llega por el aviso del socket.
   async function run(action: () => Promise<unknown>) {
-    setBusy(true)
-    setError(null)
+    setBusy(true);
+    setError(null);
     try {
-      await action()
+      await action();
     } catch (e) {
       setError(
         e instanceof ApiError ? errorText(e.code, e.message) : t.errors.default,
-      )
+      );
     } finally {
-      setBusy(false)
+      setBusy(false);
     }
   }
 
@@ -74,7 +74,9 @@ export function OrganizerPage() {
                 )}
               </div>
               {open && (
-                <Button onClick={() => setEditing(true)}>{t.organizer.edit}</Button>
+                <Button onClick={() => setEditing(true)}>
+                  {t.organizer.edit}
+                </Button>
               )}
             </Card>
             <Card className="flex-row items-center gap-3">
@@ -82,8 +84,13 @@ export function OrganizerPage() {
                 <span id="pair-rule" className="font-semibold">
                   {t.organizer.pairRule}
                 </span>
-                <span id="pair-rule-state" className="text-[13px] text-muted-foreground">
-                  {room.pairRuleEnabled ? t.organizer.pairRuleOn : t.organizer.pairRuleOff}
+                <span
+                  id="pair-rule-state"
+                  className="text-[13px] text-muted-foreground"
+                >
+                  {room.pairRuleEnabled
+                    ? t.organizer.pairRuleOn
+                    : t.organizer.pairRuleOff}
                 </span>
               </div>
               <Switch
@@ -91,7 +98,9 @@ export function OrganizerPage() {
                 aria-describedby="pair-rule-state"
                 checked={room.pairRuleEnabled}
                 disabled={!open || busy}
-                onCheckedChange={(enabled) => run(() => setPairRule(token, enabled))}
+                onCheckedChange={(enabled) =>
+                  run(() => setPairRule(token, enabled))
+                }
               />
             </Card>
             {error && <Alert variant="error">{error}</Alert>}
@@ -119,7 +128,10 @@ export function OrganizerPage() {
             }
             footer={
               open && unpairedCount >= 2 ? (
-                <Button className="mt-1.5 mb-2.5" onClick={() => setMarkingPair(true)}>
+                <Button
+                  className="mt-1.5 mb-2.5"
+                  onClick={() => setMarkingPair(true)}
+                >
                   {t.organizer.markPair}
                 </Button>
               ) : null
@@ -161,5 +173,5 @@ export function OrganizerPage() {
         pairs={pairs}
       />
     </PageLayout>
-  )
+  );
 }

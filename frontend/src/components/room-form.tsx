@@ -1,12 +1,12 @@
-import { FormField } from '@/components/ui/form-field'
+import { FormField } from '@/components/ui/form-field';
 import {
   maxGiftDate,
   type RoomFormErrors,
   type RoomFormValues,
-} from '@/hooks/use-room-form'
-import { todayIso } from '@/lib/format'
-import { ROOM_NAME_MAX } from '@/lib/names'
-import { t } from '@/texts/es'
+} from '@/hooks/use-room-form';
+import { todayIso } from '@/lib/format';
+import { ROOM_NAME_MAX } from '@/lib/names';
+import { t } from '@/texts/es';
 
 // Campos de la sala: nombre, día de entrega y presupuesto.
 export function RoomFields({
@@ -14,11 +14,11 @@ export function RoomFields({
   errors,
   set,
 }: {
-  values: RoomFormValues
-  errors: RoomFormErrors
+  values: RoomFormValues;
+  errors: RoomFormErrors;
   set: (
     field: 'name' | 'giftDate' | 'budget',
-  ) => (value: string, invalid?: boolean) => void
+  ) => (value: string, invalid?: boolean) => void;
 }) {
   return (
     <>
@@ -60,5 +60,5 @@ export function RoomFields({
         autoComplete="off"
       />
     </>
-  )
+  );
 }

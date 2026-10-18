@@ -71,7 +71,7 @@ No desarrollar: cuentas de usuario, email o notificaciones push, pagos o monetiz
 
 ## Seguridad y requisitos no funcionales
 
-- **Secreto real**: ninguna respuesta HTTP ni evento de socket expone asignaciones ajenas, ni al organizador. La asignación se emite solo al socket del participante, tras validar su token. Al organizador solo llegan el contador de vistos y, por participante, nombre y estado visto o pendiente; nunca asignaciones.
+- **Secreto real**: ninguna respuesta HTTP ni evento de socket expone asignaciones ajenas, ni al organizador. La asignación solo la obtiene el propio participante, por HTTP con su token (`GET /api/me/assignment`); el socket solo avisa de que hay sorteo, sin datos (decidido con el usuario el 18/10/2026, en lugar de emitirla por el socket). Al organizador solo llegan el contador de vistos y, por participante, nombre y estado visto o pendiente; nunca asignaciones.
 - **Tokens**: 32 bytes aleatorios. En base de datos solo se guarda el hash (SHA-256), con comparación segura. Se muestran una sola vez (al crear o regenerar). Colocarlos en el fragmento de la URL (#) para que no queden en logs del servidor y enviarlos por cabecera Authorization. No registrar tokens ni datos personales en logs.
 - **Rate limiting** por IP en toda la API. Configurar trust proxy (el hosting usa proxy). Límite generoso: un grupo comparte IP en la misma wifi. Las reconexiones de WebSocket no cuentan como peticiones normales.
 - **Validación de entradas**: nombres (longitud y caracteres), fechas e importes; enlaces de deseos solo https y abiertos con `rel="noopener noreferrer"`; archivos por tipo real. Escapar todo lo que se muestre (XSS).

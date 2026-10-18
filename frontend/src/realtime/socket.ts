@@ -1,12 +1,12 @@
-import { io } from 'socket.io-client'
-import type { Role } from '@/api/types'
-import { API_URL } from '@/config'
+import { io } from 'socket.io-client';
+import type { Role } from '@/api/types';
+import { API_URL } from '@/config';
 
 interface RoomSubscription {
   // Al conectar, al reconectar y con cada aviso `room:changed`.
-  onChange: () => void
+  onChange: () => void;
   // El servidor rechazó el token: el enlace ya no es válido.
-  onAuthError: () => void
+  onAuthError: () => void;
 }
 
 // Se suscribe a los avisos de una sala. Los avisos no traen datos: quien
@@ -18,18 +18,18 @@ export function subscribeToRoom(
   token: string,
   { onChange, onAuthError }: RoomSubscription,
 ): () => void {
-  const socket = io(`${API_URL}/rooms`, { auth: { role, token } })
-  socket.on('connect', onChange)
-  socket.on('room:changed', onChange)
+  const socket = io(`${API_URL}/rooms`, { auth: { role, token } });
+  socket.on('connect', onChange);
+  socket.on('room:changed', onChange);
   socket.on('connect_error', (err) => {
-    if (err.message === 'NOT_FOUND') onAuthError()
-  })
+    if (err.message === 'NOT_FOUND') onAuthError();
+  });
   // El servidor cierra el socket de quien es expulsado o sale: se recarga
   // el estado, que responderá «No encontrado».
   socket.on('disconnect', (reason) => {
-    if (reason === 'io server disconnect') onChange()
-  })
+    if (reason === 'io server disconnect') onChange();
+  });
   return () => {
-    socket.disconnect()
-  }
+    socket.disconnect();
+  };
 }

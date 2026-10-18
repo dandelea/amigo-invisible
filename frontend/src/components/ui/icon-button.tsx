@@ -1,6 +1,6 @@
-import type { ComponentProps, ReactNode } from 'react'
-import { Button } from './button'
-import { Tooltip, TooltipContent, TooltipTrigger } from './tooltip'
+import type { ComponentProps, ReactNode } from 'react';
+import { Button } from './button';
+import { Tooltip, TooltipContent, TooltipTrigger } from './tooltip';
 
 // Botón de solo icono (44 × 44 px, o 36 px visibles con `icon-sm`) con
 // etiqueta accesible obligatoria y un tooltip con un texto corto. En móvil
@@ -12,10 +12,10 @@ export function IconButton({
   size = 'icon',
   ...props
 }: Omit<ComponentProps<typeof Button>, 'size' | 'aria-label'> & {
-  label: string
-  tooltip: string
-  children: ReactNode
-  size?: 'icon' | 'icon-sm'
+  label: string;
+  tooltip: string;
+  children: ReactNode;
+  size?: 'icon' | 'icon-sm';
 }) {
   return (
     <Tooltip>
@@ -24,7 +24,9 @@ export function IconButton({
           {children}
         </Button>
       </TooltipTrigger>
-      <TooltipContent className="text-xs font-semibold">{tooltip}</TooltipContent>
+      <TooltipContent className="text-xs font-semibold">
+        {tooltip}
+      </TooltipContent>
     </Tooltip>
-  )
+  );
 }

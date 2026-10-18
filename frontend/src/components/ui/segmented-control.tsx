@@ -1,5 +1,5 @@
-import { ToggleGroup } from 'radix-ui'
-import { cn } from '@/lib/utils'
+import { ToggleGroup } from 'radix-ui';
+import { cn } from '@/lib/utils';
 
 // Selector de dos o más opciones excluyentes (p. ej. Enlace / Archivo).
 export function SegmentedControl<T extends string>({
@@ -8,10 +8,10 @@ export function SegmentedControl<T extends string>({
   options,
   label,
 }: {
-  value: T
-  onChange: (value: T) => void
-  options: { value: T; label: string }[]
-  label: string
+  value: T;
+  onChange: (value: T) => void;
+  options: { value: T; label: string }[];
+  label: string;
 }) {
   return (
     <ToggleGroup.Root
@@ -35,5 +35,5 @@ export function SegmentedControl<T extends string>({
         </ToggleGroup.Item>
       ))}
     </ToggleGroup.Root>
-  )
+  );
 }
