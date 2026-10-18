@@ -22,6 +22,9 @@ docs/
   mockups/      Mockups de diseño (ver docs/mockups/MOCKUPS.md)
   openapi.json  Esquema OpenAPI exportado desde el backend
   componentes.md  Componentes reutilizables del frontend
+.husky/         Hook de pre-commit (lint-staged)
+.vscode/        Extensiones, depuración, tareas y ajustes recomendados
+package.json    Herramientas comunes: Prettier, Husky y lint-staged
 CONTEXT.md      Estado del proyecto para traspasos
 docker-compose.yml  PostgreSQL (puerto 54329) y S3 local con VersityGW (puerto 59000)
 Prompt_inicial_Amigo_Invisible.md   Fuente de verdad del proyecto
@@ -30,6 +33,7 @@ Prompt_inicial_Amigo_Invisible.md   Fuente de verdad del proyecto
 ## Instalación
 
 ```bash
+npm install                           # raíz: Prettier, Husky y lint-staged (activa el pre-commit)
 docker compose up -d                  # PostgreSQL (54329) y S3 local (59000)
 cd backend && npm install && cp .env.example .env
 npm run db:migrate                    # aplica las migraciones
@@ -73,7 +77,7 @@ Si una variable es inválida, el backend no arranca y muestra solo su nombre, nu
 ## Arrancar en local
 
 ```bash
-docker compose up -d                       # PostgreSQL (si no está ya arrancado)
+docker compose up -d                       # PostgreSQL y S3 local (si no están ya arrancados)
 
 # Backend: http://localhost:3000 · Swagger en http://localhost:3000/api/docs
 cd backend && npm run start:dev
@@ -107,15 +111,46 @@ El frontend está en `frontend/src`:
 ## Tests
 
 ```bash
+npm test            # desde la raíz: unitarios del backend y tests del frontend
+
 cd backend
 npm test            # unitarios
-npm run test:e2e    # integración (necesita Docker: arranca un PostgreSQL 17 con Testcontainers)
-npm run lint
+npm run test:e2e    # integración (necesita Docker: PostgreSQL 17 y VersityGW con Testcontainers)
 
 cd frontend
 npm test            # componentes y pantallas (Testing Library), con la API y el socket simulados
-npm run lint
 ```
+
+## Calidad de código
+
+- **ESLint 9** en cada paquete (`eslint.config.*`): reglas recomendadas de JavaScript y de TypeScript con tipos. En el frontend, además, reglas de hooks de React, Fast Refresh y accesibilidad (`jsx-a11y`). Se usa ESLint 9 y no la 10 porque `jsx-a11y` todavía no admite la 10.
+- **Prettier** con un estilo común para todo el repo (`.prettierrc.json`: comillas simples, comas finales y punto y coma). `.prettierignore` excluye lo generado (`dist`, migraciones, `docs/openapi.json`) y los mockups.
+- **Pre-commit** con Husky y lint-staged: al hacer commit se pasan `eslint --fix` y Prettier solo sobre los archivos preparados. Si queda algún error de ESLint, el commit se cancela. Cada paquete tiene su `.lintstagedrc.json`; el de la raíz cubre los archivos sueltos (README, docs…).
+
+```bash
+npm run lint             # raíz: ESLint en backend y frontend
+npm run format           # raíz: Prettier en todo el repo
+npm run format:check     # raíz: comprobar el formato sin cambiar nada
+cd backend && npm run lint:fix   # (o frontend) arreglar lo que ESLint sepa arreglar
+```
+
+## VS Code
+
+Al abrir el proyecto, VS Code propone las extensiones recomendadas (`.vscode/extensions.json`): ESLint, Prettier, Tailwind CSS IntelliSense, Vitest, Container Tools y Error Lens. Con `.vscode/settings.json` se formatea al guardar y se aplican los arreglos de ESLint.
+
+Configuraciones de depuración (`.vscode/launch.json`, en «Ejecutar y depurar»):
+
+| Configuración                                             | Qué hace                                                                                        |
+| --------------------------------------------------------- | ----------------------------------------------------------------------------------------------- |
+| Backend: depurar (watch)                                  | Arranca `npm run start:dev` y asocia el depurador a la app (con mapas de fuente).               |
+| Backend: asociar al proceso (puerto 9229)                 | Se asocia a un backend lanzado con `npm run start:debug`.                                       |
+| Backend: test unitario del archivo abierto                | Vitest con depurador sobre el archivo `.spec.ts` abierto.                                       |
+| Backend: test de integración del archivo abierto (Docker) | Igual, para un `.e2e-spec.ts`.                                                                  |
+| Frontend: depurar en Chrome                               | Arranca Vite (tarea `frontend: dev`) y abre Chrome con el depurador en `http://localhost:5173`. |
+| Frontend: test del archivo abierto                        | Vitest con depurador sobre el test abierto.                                                     |
+| Depurar todo                                              | Backend y frontend a la vez.                                                                    |
+
+Antes de depurar el backend hacen falta los servicios (tarea `servicios: docker compose up`) y `backend/.env`. Para depurar el frontend, el puerto 5173 tiene que estar libre.
 
 ## Documentación de la API
 
@@ -193,6 +228,7 @@ Implementado en `backend/src/draw/draw.ts`, como función pura sin base de datos
 
 | Decisión                           | Motivo                                                                                                                                                                                                                                                                                                                                                                                       |
 | ---------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| ESLint en lugar de oxlint          | Las plantillas traían oxlint; se sustituyó por ESLint para tener una sola herramienta con los plugins de React y accesibilidad.                                                                                                                                                                                                                                                              |
 | Bloqueos en la base de datos       | Unirse bloquea la fila de la sala (`SELECT … FOR UPDATE`), así que las entradas simultáneas se procesan de una en una y nunca superan 30 ni entran en una sala cerrada. Crear sala usa un bloqueo consultivo (`pg_advisory_xact_lock`) para que las creaciones simultáneas no superen `MAX_ROOMS`. La restricción única `(room_id, name_key)` respalda la comprobación de nombres repetidos. |
 | Sockets que solo avisan            | Todo el estado viaja por HTTP con permisos; el socket solo dice «algo ha cambiado». Es más simple y no puede filtrar datos.                                                                                                                                                                                                                                                                  |
 | Configuración propia (`EnvModule`) | Valida `process.env` al crear la app y no al importar el módulo, así cada test puede arrancar con su propia configuración. Sustituye a `@nestjs/config`.                                                                                                                                                                                                                                     |

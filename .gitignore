@@ -16,6 +16,9 @@ coverage/
 # Editores y sistema
 .vscode/*
 !.vscode/extensions.json
+!.vscode/launch.json
+!.vscode/settings.json
+!.vscode/tasks.json
 .idea/
 .DS_Store
 *.sw?

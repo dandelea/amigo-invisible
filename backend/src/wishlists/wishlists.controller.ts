@@ -11,7 +11,6 @@ import {
   UseInterceptors,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
-import type { MulterOptions } from '@nestjs/platform-express/multer/interfaces/multer-options.interface.js';
 import {
   ApiBadRequestResponse,
   ApiBearerAuth,
@@ -75,7 +74,7 @@ export class WishlistsController {
       // Sin esto, multer lee los nombres de archivo como latin1 y «ñ» llega
       // como «Ã±».
       defParamCharset: 'utf8',
-    } as MulterOptions),
+    }),
   )
   @ApiOperation({
     summary: 'Sube un archivo como lista de deseos',

@@ -66,7 +66,7 @@ export function JoinPage() {
     setSubmitting(true);
     try {
       const { participantToken } = await joinRoom(code, cleaned);
-      navigate(personalPath(participantToken), {
+      void navigate(personalPath(participantToken), {
         replace: true,
         state: { justJoined: true },
       });

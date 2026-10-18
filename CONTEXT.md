@@ -4,7 +4,66 @@ Resumen para traspasos entre agentes. La fuente de verdad es [`Prompt_inicial_Am
 
 ## Fase actual
 
-**Fase 3 (gestión): terminada el 18 de octubre de 2026, pendiente de revisión del usuario.** Siguiente: **Fase 4, sorteo**. Además de lo del prompt inicial, incluye lo que pidió el usuario: ESLint y Prettier con Husky y lint-staged, y la carpeta `.vscode/` (ver abajo). Antes de codificar, presentar un plan breve y esperar confirmación.
+**Fase 4a (herramientas): terminada el 18 de octubre de 2026, pendiente de revisión del usuario.** Siguiente: **Fase 4b, backend del sorteo**, con el plan de abajo.
+
+## Fase 4: plan confirmado
+
+- **4a, herramientas** (hecha; resumen abajo): ESLint, Prettier, Husky, lint-staged y `.vscode/`, todo pedido por el usuario.
+- **4b, backend del sorteo** (pendiente):
+  - tabla `assignments` (`ON DELETE CASCADE`) y contador de ronda en la sala;
+  - `POST /api/manage/draw`, idempotente, en una transacción con la sala bloqueada, usando `checkDrawFeasibility` (409 `NO_SOLUTION` o `TOO_FEW_PARTICIPANTS`);
+  - `POST /api/manage/redraw`: mismos participantes, reinicia los vistos y avisa;
+  - `POST /api/manage/participants/:id/token`: regenera el enlace personal, invalida el anterior y cierra sus sockets;
+  - la vista del organizador lleva viabilidad, contador y lista de vistos con solo nombre y estado;
+  - `GET /api/me/assignment` y `POST /api/me/assignment/seen`;
+  - tests de secreto y de concurrencia.
+- **4c, frontend del sorteo** (pendiente):
+  - aviso «No hay solución» y «Sortear»;
+  - vista del sorteo con contador, barra y «Más» (modal de vistos);
+  - «Repetir sorteo» con confirmación; «Regenerar enlace personal» en el menú ⋮ (confirmar y nuevo enlace);
+  - participante: «¡Ya se ha hecho el sorteo!» → ruleta → resultado, y el aviso de sorteo repetido;
+  - componentes `Roulette`, `RevealCard`, `SeenCounter`, `SeenList` y `ProgressBar`.
+- **Decisiones** (usuario, 18/10/2026):
+  - la asignación se obtiene por HTTP con el token del participante y el socket solo avisa; el prompt inicial está actualizado;
+  - ESLint sustituye a oxlint;
+  - Prettier con un estilo común: comillas simples, comas finales y punto y coma.
+
+## Fase 4a: resumen
+
+### Hecho
+
+- **Prettier común**: `.prettierrc.json` y `.prettierignore` en la raíz (excluye lo generado y los mockups). Se reformateó el frontend, que no usaba punto y coma, en un commit aparte solo de formato. Los paquetes usan `--ignore-path ../.prettierignore` en sus scripts.
+- **ESLint 9.39** en cada paquete (`backend/eslint.config.mjs`, `frontend/eslint.config.js`):
+  - recomendadas de JS y typescript-eslint con tipos;
+  - en el frontend, además, react-hooks, react-refresh y jsx-a11y (comprobado con un archivo de prueba que las reglas se disparan).
+  - oxlint desinstalado.
+  - Corregido lo que encontró:
+    - `shouldSkip` no necesitaba ser `async`;
+    - sobraba un `as MulterOptions`;
+    - `import.meta.env` tipado en `src/vite-env.d.ts`;
+    - `void`/`await` en los `navigate()`, que devuelven promesa en React Router 8.
+- **Husky y lint-staged**:
+  - `package.json` en la raíz (`prepare: husky`);
+  - `.husky/pre-commit` ejecuta `npx lint-staged`;
+  - un `.lintstagedrc.json` por paquete, porque lint-staged usa el más cercano y ejecuta desde esa carpeta, y uno en la raíz para los archivos sueltos.
+  - Probado sin hacer commit: un error de ESLint bloquea; un archivo mal formateado se arregla y se vuelve a preparar.
+- **`.vscode/`**:
+  - `extensions.json`: ESLint, Prettier, Tailwind, Vitest, Container Tools y Error Lens;
+  - `settings.json`: formatear al guardar, arreglos de ESLint y Tailwind 4 con `cn`/`cva`;
+  - `tasks.json`: Vite en segundo plano y docker compose;
+  - `launch.json`: backend en modo watch, asociar al 9229, tests unitarios y de integración del archivo abierto, frontend en Chrome, test del frontend y depurar todo.
+  - `.gitignore` deja pasar `launch.json`, `settings.json` y `tasks.json`.
+- **Scripts de la raíz**: `npm run lint`, `npm test`, `npm run format` y `npm run format:check`.
+- Todo en verde: lint, formato, 65 + 108 tests del backend, 60 del frontend y el build.
+
+### Decisiones
+
+- **ESLint 9 y no 10**: `eslint-plugin-jsx-a11y` (sin actualizar desde 2024) solo admite hasta la 9. El resto de plugins admiten la 9 y la 10, así que cuando jsx-a11y admita la 10 bastará con cambiar la versión.
+- **Configuración de depuración no probada en VS Code**: no se puede ejecutar VS Code desde aquí. Sí se comprobó que existen las rutas que usa y que los tests se lanzan con esa misma invocación.
+
+### Pendiente
+
+- Fase 4b.
 
 ## Fase 3: plan confirmado
 
@@ -15,13 +74,6 @@ Resumen para traspasos entre agentes. La fuente de verdad es [`Prompt_inicial_Am
   - componentes `IconButton`, `SegmentedControl`, `Switch`, `SelectableOption`, `ResponsiveDialog`, `ConfirmDialog`, `ActionSheetItem`, `PairGroup`, `WishlistCard` y `WishlistEditor`;
   - al expulsar o salir, el servidor cierra el socket del participante (`io server disconnect`): el cliente debe recargar y mostrar «No encontrado».
 - **Pasan a la Fase 4** (confirmado por el usuario): «Regenerar enlace personal» en el menú ⋮ y el aviso «No hay solución» junto a «Sortear».
-- **Decisiones de la Fase 4** (usuario, 18/10/2026):
-  - la asignación se obtiene por HTTP con el token del participante (`GET /api/me/assignment`) y el socket solo avisa; el prompt inicial está actualizado;
-  - ESLint **sustituye** a oxlint;
-  - Prettier con un **estilo común** en la raíz: comillas simples, comas finales y punto y coma (propuesto). El frontend se reformatea en un commit aparte, solo de formato.
-- **Plan de la Fase 4**: 4a herramientas → 4b backend del sorteo → 4c frontend del sorteo, cada parte con revisión del usuario.
-- **Pedido por el usuario para la Fase 4** (18/10/2026): ESLint y Prettier en todo el proyecto, con Husky y lint-staged en el pre-commit. Hoy backend y frontend usan oxlint (venía con las plantillas) y solo el backend tiene Prettier: al planificar, decidir con el usuario si ESLint sustituye a oxlint o convive con él.
-- **Pedido por el usuario para la Fase 4** (18/10/2026): carpeta `.vscode/` con configuraciones de depuración recomendadas (`launch.json`) y extensiones recomendadas (`extensions.json`) para este proyecto. El `.gitignore` ya deja pasar `.vscode/extensions.json`; habrá que permitir también `launch.json`.
 
 ## Fase 3b: resumen
 

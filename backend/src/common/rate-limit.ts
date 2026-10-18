@@ -51,7 +51,7 @@ export function rateLimitOptions(env: Env): ThrottlerModuleOptions {
 // Solo limita peticiones HTTP: las reconexiones de WebSocket no cuentan.
 @Injectable()
 export class HttpThrottlerGuard extends ThrottlerGuard {
-  protected async shouldSkip(ctx: ExecutionContext): Promise<boolean> {
-    return ctx.getType() !== 'http';
+  protected shouldSkip(ctx: ExecutionContext): Promise<boolean> {
+    return Promise.resolve(ctx.getType() !== 'http');
   }
 }

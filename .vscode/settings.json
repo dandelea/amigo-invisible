@@ -1,0 +1,21 @@
+{
+  // Formato con Prettier (configuración común en la raíz) y arreglos de
+  // ESLint al guardar.
+  "editor.formatOnSave": true,
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": "explicit"
+  },
+  // backend/ y frontend/ tienen cada uno su eslint.config.
+  "eslint.workingDirectories": [{ "mode": "auto" }],
+  // Tailwind 4 se configura en el CSS, no en un tailwind.config.
+  "tailwindCSS.experimental.configFile": "frontend/src/index.css",
+  "files.associations": { "*.css": "tailwindcss" },
+  // Las clases de Tailwind también se escriben dentro de cn() y cva().
+  "tailwindCSS.classFunctions": ["cn", "cva"],
+  "search.exclude": {
+    "**/dist": true,
+    "**/coverage": true,
+    "docs/openapi.json": true
+  }
+}

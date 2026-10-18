@@ -33,7 +33,7 @@ export function CreateRoomPage() {
     setSubmitting(true);
     try {
       const created = await createRoom(input);
-      navigate('/creada', { state: created });
+      void navigate('/creada', { state: created });
     } catch (error) {
       const fields = serverFieldErrors(error);
       if (fields) {

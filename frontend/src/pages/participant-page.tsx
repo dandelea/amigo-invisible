@@ -108,7 +108,7 @@ export function ParticipantPage() {
         destructive
         onConfirm={async () => {
           await leaveRoom(token);
-          navigate('/salida', { replace: true });
+          await navigate('/salida', { replace: true });
         }}
       />
     </PageLayout>

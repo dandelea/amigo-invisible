@@ -1,0 +1,11 @@
+{
+  // Extensiones recomendadas: VS Code las propone al abrir el proyecto.
+  "recommendations": [
+    "dbaeumer.vscode-eslint",
+    "esbenp.prettier-vscode",
+    "bradlc.vscode-tailwindcss",
+    "vitest.explorer",
+    "ms-azuretools.vscode-containers",
+    "usernamehw.errorlens"
+  ]
+}
