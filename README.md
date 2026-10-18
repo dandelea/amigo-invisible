@@ -4,7 +4,7 @@ Aplicación web de “Amigo Invisible” (Secret Santa) para grupos, pensada par
 
 Proyecto personal y de aprendizaje, gratuito y sin monetización. Solo en español.
 
-> **Estado:** Fase 2a cerrada: el backend permite crear salas, unirse y ver la lista en tiempo real. El frontend de estas pantallas es la Fase 2b. Ver [`CONTEXT.md`](CONTEXT.md).
+> **Estado:** Fase 2 cerrada: se puede crear una sala, compartir la invitación, unirse y ver la lista en tiempo real. Parejas, deseos y sorteo llegan en las fases 3 y 4. Ver [`CONTEXT.md`](CONTEXT.md).
 
 ## Requisitos
 
@@ -71,12 +71,34 @@ Si una variable es inválida, el backend no arranca y muestra solo su nombre, nu
 ## Arrancar en local
 
 ```bash
+docker compose up -d                       # PostgreSQL (si no está ya arrancado)
+
 # Backend: http://localhost:3000 · Swagger en http://localhost:3000/api/docs
 cd backend && npm run start:dev
 
 # Frontend: http://localhost:5173
 cd frontend && npm run dev
 ```
+
+### Pantallas del frontend
+
+| Ruta | Pantalla |
+|---|---|
+| `/` | Inicio: explicación en 3 pasos y «Crear sala» (o «Ahora mismo no se admiten más salas») |
+| `/crear` | Formulario de la sala |
+| `/creada` | Enlaces de invitación y de gestión, justo después de crear. Si se recarga, vuelve al inicio: el enlace de gestión solo se muestra una vez |
+| `/s/<código>` | Unirse con un nombre (o «Sala llena» / «Sala cerrada») |
+| `/p#<token>` | Sala del participante, en tiempo real |
+| `/o#<token>` | Panel del organizador, en tiempo real |
+| cualquier otra | «No encontrado» |
+
+El frontend está en `frontend/src`:
+- `api/`: cliente HTTP y tipos;
+- `realtime/`: Socket.IO;
+- `hooks/use-live-room.ts`: carga la sala y la recarga con cada aviso;
+- `components/`: los componentes de `docs/componentes.md`;
+- `pages/`: las pantallas;
+- `texts/es.ts`: todos los textos.
 
 ## Tests
 
@@ -87,7 +109,7 @@ npm run test:e2e    # integración (necesita Docker: arranca un PostgreSQL 17 co
 npm run lint
 
 cd frontend
-npm test
+npm test            # componentes y pantallas (Testing Library), con la API y el socket simulados
 npm run lint
 ```
 

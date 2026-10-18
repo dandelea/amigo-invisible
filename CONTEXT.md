@@ -4,17 +4,37 @@ Resumen para traspasos entre agentes. La fuente de verdad es [`Prompt_inicial_Am
 
 ## Fase actual
 
-**Fase 2a (backend de la base): terminada el 18 de octubre de 2026, pendiente de revisión del usuario.** Siguiente: **Fase 2b, frontend** de estas pantallas, con el plan que ya está confirmado (ver abajo).
+**Fase 2 (base): terminada el 18 de octubre de 2026, pendiente de revisión del usuario.** Siguiente: **Fase 3, gestión** (parejas y regla de pareja, expulsar, salir de la sala, listas de deseos con enlace y archivo en R2, y editar los datos de la sala). Antes de codificar, presentar un plan breve y esperar confirmación. La pantalla «Despertando el servidor» queda para la Fase 5.
 
-## Fase 2: plan confirmado
+## Fase 2b: resumen
 
-- **2a, backend** (hecha): modelo de datos, tokens, permisos, crear sala con `MAX_ROOMS`, unirse, vistas de participante y organizador, Socket.IO que solo avisa, límite de peticiones y tests con Testcontainers.
-- **2b, frontend** (pendiente):
-  - React Router con Inicio, Crear, Sala creada, Unirse (con el error de nombre repetido), Participante, Organizador y estados (llena, cerrada, no encontrado, sin salas);
-  - componentes `Button`, `Card`, `Pill`, `Avatar`, `FormField`, `Alert`, `PageLayout`, `StepCard`, `StatusScreen`, `RoomHeader`, `ParticipantRow`, `ParticipantList` y `CopyLinkBox`;
-  - cliente de API con `Authorization` y `socket.io-client` con reconexión que recarga el estado;
-  - tests con Testing Library.
-- **Para la Fase 3:** editar los datos de la sala y salir de la sala, junto con parejas, expulsión y deseos. La pantalla «Despertando el servidor» queda para la Fase 5.
+### Hecho
+
+- **Rutas** (React Router 8, `src/App.tsx`): `/`, `/crear`, `/creada`, `/s/:code`, `/p#token`, `/o#token` y «No encontrado» para el resto.
+- **Datos**:
+  - `src/api/` (cliente `fetch` con `Authorization`; los errores llegan como `ApiError` con el código del backend, o `NETWORK`);
+  - `src/realtime/socket.ts` (Socket.IO: recarga al conectar, al reconectar y con cada `room:changed`; si el servidor rechaza el token, muestra «No encontrado»);
+  - `src/hooks/use-live-room.ts` (aplica solo la respuesta más reciente y no borra la sala por un fallo pasajero).
+- **Componentes** de la Fase 2 (lista en `docs/componentes.md`), con los colores de los mockups. En ordenador, dos columnas como en `DParticipante` y `DOrganizador`.
+- **Validación en el cliente** con las mismas reglas que el backend (`src/lib/names.ts`). El presupuesto admite coma decimal.
+- **Tests**: 36 en el frontend (formato, enlaces, componentes y todas las pantallas, con la API y el socket simulados).
+- **Prueba real**: PostgreSQL de docker compose, backend compilado y `vite preview`. Se comprobó el fallback de SPA, el CORS y un socket de organizador por WebSocket que recibe el aviso cuando alguien entra; un token falso se rechaza.
+
+### Decisiones
+
+Hay tres añadidos respecto a los mockups, que se comunicaron al usuario:
+- un botón «Ir a mi sala» en «Sala creada», porque si no, no hay forma de llegar al panel;
+- una tarjeta con el enlace de invitación en el panel del organizador, para poder volver a compartirlo;
+- la tarjeta «Guarda tu enlace personal» en la sala del participante, solo justo después de unirse.
+
+Otras decisiones:
+- «Sala creada» recibe los enlaces en el estado de la navegación; si se recarga, vuelve al inicio.
+- El token del enlace se lee del fragmento y no se guarda en el navegador: el propio enlace es la forma de volver.
+- El ejemplo de los mockups «sábado 20 de diciembre de 2026» es incorrecto: es domingo. La app formatea la fecha real.
+
+### Pendiente
+
+- Fase 3. Al expulsar o salir habrá que desconectar los sockets del participante (`participant:<id>`).
 
 ## Fase 2a: resumen
 

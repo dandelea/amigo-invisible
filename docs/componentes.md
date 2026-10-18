@@ -1,6 +1,6 @@
 # Componentes reutilizables del frontend
 
-Lista confirmada por el usuario en la Fase 0 (18/10/2026), obtenida analizando las 24 pantallas de móvil de `docs/mockups/`. Las vistas de tablet y ordenador usan las mismas piezas con más ancho. Se implementan a medida que cada fase los necesite.
+Lista confirmada por el usuario en la Fase 0 (18/10/2026), obtenida analizando las 24 pantallas de móvil de `docs/mockups/`. Las vistas de tablet y ordenador usan las mismas piezas con más ancho. Se implementan a medida que cada fase los necesita. Implementados en la Fase 2: `Button`, `Card`, `Pill`, `Avatar` (inicial y pareja), `FormField`, `Alert`, `PageLayout` (con `TwoColumns`), `StepCard`, `StatusScreen`, `RoomHeader`, `ParticipantRow`, `ParticipantList` y `CopyLinkBox`.
 
 Los textos van en `frontend/src/texts/es.ts` y los colores en las variables CSS de `frontend/src/index.css`.
 

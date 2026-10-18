@@ -17,6 +17,7 @@
   --color-destructive: var(--destructive);
   --color-accent-foreground: var(--accent-foreground);
   --color-accent: var(--accent);
+  --color-accent-strong: var(--accent-strong);
   --color-muted-foreground: var(--muted-foreground);
   --color-muted: var(--muted);
   --color-secondary-foreground: var(--secondary-foreground);
@@ -65,6 +66,8 @@
   --muted-foreground: #52525b;
   --accent: #fff1f2;
   --accent-foreground: #9f1239;
+  /* Fondo de etiquetas destacadas (“Para compartir”) */
+  --accent-strong: #ffe4e6;
   --destructive: #9f1239;
   --border: #e4e4e7;
   --input: #d4d4d8;
