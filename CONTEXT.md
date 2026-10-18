@@ -40,6 +40,7 @@ Resumen para traspasos entre agentes. La fuente de verdad es [`Prompt_inicial_Am
 
 - axe se pasa en un navegador real y no en jsdom, porque jsdom no puede calcular el contraste.
 - Pages se configura sin despliegues automáticos, para respetar el despliegue manual del prompt.
+- Repositorio público en GitHub con licencia MIT (decidido por el usuario el 18/10/2026). Revisado antes de publicarlo: sin secretos ni `.env` en el historial, y los commits usan el correo «noreply» de GitHub.
 
 ### Pendiente
 

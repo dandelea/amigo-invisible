@@ -4,7 +4,7 @@
   "description": "API de Amigo Invisible (NestJS)",
   "author": "",
   "private": true,
-  "license": "UNLICENSED",
+  "license": "MIT",
   "type": "module",
   "scripts": {
     "build": "nest build",

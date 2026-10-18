@@ -376,3 +376,7 @@ Aceptadas en el MVP:
 - Con `MAX_ROOMS` alcanzado no se admiten salas nuevas hasta borrar alguna a mano o subir el límite.
 - Arranques lentos (~1 min) porque el plan gratuito del backend se duerme.
 - Cualquiera con el enlace de invitación ve los nombres de quienes ya están en la sala antes de entrar.
+
+## Licencia
+
+[MIT](LICENSE).
