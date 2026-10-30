@@ -27,3 +27,6 @@ playwright-report/
 
 # Archivo de traspaso de los mockups (ya extraídos en docs/mockups/)
 mockups.zip
+
+# Claves y contraseñas en local (texto plano, nunca subir)
+CLAVES.local.md
