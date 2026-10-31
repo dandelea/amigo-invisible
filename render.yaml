@@ -21,7 +21,7 @@ services:
       - key: NODE_ENV
         value: production
       - key: MAX_ROOMS
-        value: '10'
+        value: '100'
       - key: TRUST_PROXY
         value: '1'
       - key: S3_REGION
