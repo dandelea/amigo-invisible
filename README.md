@@ -371,7 +371,11 @@ Relaciones que hay que mantener al cambiar algo:
 ### Actualizaciones posteriores
 
 - **Backend**: si hay migraciones nuevas, aplicarlas primero (paso 1.3) y después «Manual Deploy» en Render.
-- **Frontend**: para mantener el despliegue manual del MVP, desactivar en Pages los despliegues automáticos («Settings» → «Builds» → «Automatic deployments») y lanzarlos a mano desde su panel («Retry deployment» o «Create deployment»).
+- **Frontend**: para mantener el despliegue manual del MVP, los despliegues automáticos de Pages están desactivados («Settings» → «Builds» → «Automatic deployments»). Para desplegar el último commit de `main` se usa un _deploy hook_:
+  1. Una sola vez: en Pages → «Settings» → «Builds» → «Deploy hooks» → «Add deploy hook», con la rama `main`. La URL que genera permite lanzar builds a cualquiera que la tenga: se guarda solo en local (p. ej. en `CLAVES.local.md`, ignorado por git), nunca en el repositorio.
+  2. Cada despliegue: `curl -d "" "<URL del deploy hook>"`. En «Deployments» aparece la build del último commit de `main` (1–2 minutos).
+
+  No usar «Retry deployment» para publicar cambios: vuelve a construir el commit de ese despliegue, no el último.
 
 ## Borrado de salas
 
