@@ -11,6 +11,27 @@ export const SLOW_MS = 2500;
 export const HEALTH_POLL_MS = 3000;
 // Tiempo máximo de espera antes de rendirse.
 export const WAKE_TIMEOUT_MS = 90_000;
+// Tiempo máximo de una petición a la API. El hosting puede retener la
+// conexión sin responder nunca (Render cuando no consigue arrancar la
+// instancia): sin este límite, el aviso se quedaría para siempre.
+export const REQUEST_TIMEOUT_MS = 60_000;
+// Tiempo máximo de cada consulta a /health.
+export const HEALTH_TIMEOUT_MS = 10_000;
+
+// fetch con tiempo máximo. Si se agota, rechaza con un AbortError.
+export async function fetchWithTimeout(
+  url: string,
+  init: RequestInit,
+  ms: number,
+): Promise<Response> {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), ms);
+  try {
+    return await fetch(url, { ...init, signal: controller.signal });
+  } finally {
+    clearTimeout(timer);
+  }
+}
 
 let slowRequests = 0;
 let waitingForHealth = 0;
@@ -61,12 +82,18 @@ export async function waitForServer(): Promise<boolean> {
     const deadline = Date.now() + WAKE_TIMEOUT_MS;
     while (Date.now() < deadline) {
       try {
-        const res = await fetch(`${API_URL}/health`);
+        const res = await fetchWithTimeout(
+          `${API_URL}/health`,
+          {},
+          Math.min(HEALTH_TIMEOUT_MS, deadline - Date.now()),
+        );
         if (res.ok) return true;
       } catch {
-        // Sigue dormido o sin conexión: se vuelve a intentar.
+        // Sigue dormido, sin conexión o sin responder: se vuelve a intentar.
       }
-      await sleep(HEALTH_POLL_MS);
+      const left = deadline - Date.now();
+      if (left <= 0) break;
+      await sleep(Math.min(HEALTH_POLL_MS, left));
     }
     return false;
   } finally {

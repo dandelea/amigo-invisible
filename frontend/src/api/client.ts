@@ -1,5 +1,10 @@
 import { API_URL } from '@/config';
-import { trackSlow, waitForServer } from './server-status';
+import {
+  fetchWithTimeout,
+  REQUEST_TIMEOUT_MS,
+  trackSlow,
+  waitForServer,
+} from './server-status';
 
 // Error de la API con el código estable del backend (`NOT_FOUND`,
 // `ROOM_FULL`…). Si no se pudo contactar con el servidor, el código es
@@ -49,27 +54,46 @@ export async function apiRequest<T>(
   if (body !== undefined && !isForm) {
     headers['Content-Type'] = 'application/json';
   }
-  const send = (): Promise<Response | null> =>
-    fetch(`${API_URL}${path}`, {
-      method,
-      headers,
-      body: isForm
-        ? body
-        : body === undefined
-          ? undefined
-          : JSON.stringify(body),
-    }).catch(() => null);
+  // Devuelve la respuesta, 'offline' si no se pudo conectar o 'timeout' si
+  // la conexión se abrió pero no llegó respuesta a tiempo.
+  const send = (): Promise<Response | 'offline' | 'timeout'> =>
+    fetchWithTimeout(
+      `${API_URL}${path}`,
+      {
+        method,
+        headers,
+        body: isForm
+          ? body
+          : body === undefined
+            ? undefined
+            : JSON.stringify(body),
+      },
+      REQUEST_TIMEOUT_MS,
+    ).catch((error: unknown) =>
+      error instanceof DOMException && error.name === 'AbortError'
+        ? 'timeout'
+        : 'offline',
+    );
 
   // Si tarda, se avisa de que el servidor se está despertando. Si no hay
   // conexión o el hosting responde que está arrancando, se espera a que
-  // /health conteste y se reintenta una vez. En esos casos la petición no
-  // ha llegado a la app, así que reintentarla no duplica nada.
+  // /health conteste y se reintenta una vez: en esos casos la petición no
+  // ha llegado a la app, así que reintentarla no duplica nada. Si se agota
+  // el tiempo sin respuesta, no se sabe si llegó, así que solo se reintenta
+  // una lectura (GET); una modificación falla para no aplicarla dos veces.
   const untrack = trackSlow();
   let res: Response | null;
   try {
-    res = await send();
-    if (res === null || isBootingResponse(res)) {
-      res = (await waitForServer()) ? await send() : null;
+    const first = await send();
+    const retry =
+      first === 'offline' ||
+      (first === 'timeout' && method === 'GET') ||
+      (first instanceof Response && isBootingResponse(first));
+    if (retry) {
+      const again = (await waitForServer()) ? await send() : null;
+      res = again instanceof Response ? again : null;
+    } else {
+      res = first instanceof Response ? first : null;
     }
   } finally {
     untrack();

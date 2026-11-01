@@ -6,6 +6,7 @@ import { ApiError, apiRequest } from './client';
 import {
   HEALTH_POLL_MS,
   isWaking,
+  REQUEST_TIMEOUT_MS,
   resetServerStatus,
   SLOW_MS,
   WAKE_TIMEOUT_MS,
@@ -24,28 +25,35 @@ const html = (status: number) =>
 
 // Simula el backend: `api` responde a las rutas de la API y `health` a
 // /health, cada uno con su secuencia de respuestas.
-function mockServer(
-  api: (() => Promise<Response>)[],
-  health: (() => Promise<Response>)[] = [],
-) {
+function mockServer(api: Reply[], health: Reply[] = []) {
   const calls = { api: 0, health: 0 };
   vi.stubGlobal(
     'fetch',
-    vi.fn((url: string) => {
+    vi.fn((url: string, init?: RequestInit) => {
       if (url.endsWith('/health')) {
         const next = health[Math.min(calls.health, health.length - 1)];
         calls.health++;
-        return next();
+        return next(init?.signal ?? undefined);
       }
       const next = api[Math.min(calls.api, api.length - 1)];
       calls.api++;
-      return next();
+      return next(init?.signal ?? undefined);
     }),
   );
   return calls;
 }
 
+type Reply = (signal?: AbortSignal) => Promise<Response>;
+
 const offline = () => Promise.reject(new TypeError('Failed to fetch'));
+// El hosting acepta la conexión y no responde nunca (Render cuando no
+// consigue arrancar la instancia). Solo termina si se aborta.
+const hang: Reply = (signal) =>
+  new Promise<Response>((_, reject) => {
+    signal?.addEventListener('abort', () =>
+      reject(new DOMException('Aborted', 'AbortError')),
+    );
+  });
 const ok = (body: unknown) => () => Promise.resolve(json(body));
 const after = (ms: number, res: () => Response) => () =>
   new Promise<Response>((resolve) => setTimeout(() => resolve(res()), ms));
@@ -122,6 +130,33 @@ describe('apiRequest con el servidor dormido', () => {
     await vi.advanceTimersByTimeAsync(WAKE_TIMEOUT_MS + HEALTH_POLL_MS);
     await failed;
     await expect(request).rejects.toMatchObject({ code: 'NETWORK' });
+    expect(isWaking()).toBe(false);
+  });
+
+  it('si el hosting retiene las peticiones sin responder, acaba fallando con NETWORK', async () => {
+    mockServer([hang], [hang]);
+    const request = apiRequest('/api/x');
+    const failed = expect(request).rejects.toMatchObject({ code: 'NETWORK' });
+    await vi.advanceTimersByTimeAsync(REQUEST_TIMEOUT_MS + WAKE_TIMEOUT_MS);
+    await failed;
+    expect(isWaking()).toBe(false);
+  });
+
+  it('una petición GET colgada se reintenta cuando /health responde', async () => {
+    const calls = mockServer([hang, ok({ hola: 1 })], [ok({ status: 'ok' })]);
+    const request = apiRequest('/api/x');
+    await vi.advanceTimersByTimeAsync(REQUEST_TIMEOUT_MS);
+    await expect(request).resolves.toEqual({ hola: 1 });
+    expect(calls).toEqual({ api: 2, health: 1 });
+  });
+
+  it('una petición que modifica y se cuelga no se reintenta (podría haberse aplicado)', async () => {
+    const calls = mockServer([hang, ok({ hola: 1 })], [ok({ status: 'ok' })]);
+    const request = apiRequest('/api/x', { method: 'POST', body: {} });
+    const failed = expect(request).rejects.toMatchObject({ code: 'NETWORK' });
+    await vi.advanceTimersByTimeAsync(REQUEST_TIMEOUT_MS);
+    await failed;
+    expect(calls).toEqual({ api: 1, health: 0 });
     expect(isWaking()).toBe(false);
   });
 });
